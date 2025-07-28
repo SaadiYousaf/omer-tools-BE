@@ -1,0 +1,17 @@
+E:\OmarToolsBE\src\ProductService.DataAccess\bin\Debug\net9.0\ProductService.DataAccess.deps.json
+E:\OmarToolsBE\src\ProductService.DataAccess\bin\Debug\net9.0\ProductService.DataAccess.runtimeconfig.json
+E:\OmarToolsBE\src\ProductService.DataAccess\bin\Debug\net9.0\ProductService.DataAccess.dll
+E:\OmarToolsBE\src\ProductService.DataAccess\bin\Debug\net9.0\ProductService.DataAccess.pdb
+E:\OmarToolsBE\src\ProductService.DataAccess\bin\Debug\net9.0\ProductService.Domain.dll
+E:\OmarToolsBE\src\ProductService.DataAccess\bin\Debug\net9.0\ProductService.Domain.pdb
+E:\OmarToolsBE\src\ProductService.DataAccess\obj\Debug\net9.0\ProductService.DataAccess.csproj.AssemblyReference.cache
+E:\OmarToolsBE\src\ProductService.DataAccess\obj\Debug\net9.0\ProductService.DataAccess.GeneratedMSBuildEditorConfig.editorconfig
+E:\OmarToolsBE\src\ProductService.DataAccess\obj\Debug\net9.0\ProductService.DataAccess.AssemblyInfoInputs.cache
+E:\OmarToolsBE\src\ProductService.DataAccess\obj\Debug\net9.0\ProductService.DataAccess.AssemblyInfo.cs
+E:\OmarToolsBE\src\ProductService.DataAccess\obj\Debug\net9.0\ProductService.DataAccess.csproj.CoreCompileInputs.cache
+E:\OmarToolsBE\src\ProductService.DataAccess\obj\Debug\net9.0\ProductS.37430911.Up2Date
+E:\OmarToolsBE\src\ProductService.DataAccess\obj\Debug\net9.0\ProductService.DataAccess.dll
+E:\OmarToolsBE\src\ProductService.DataAccess\obj\Debug\net9.0\refint\ProductService.DataAccess.dll
+E:\OmarToolsBE\src\ProductService.DataAccess\obj\Debug\net9.0\ProductService.DataAccess.pdb
+E:\OmarToolsBE\src\ProductService.DataAccess\obj\Debug\net9.0\ProductService.DataAccess.genruntimeconfig.cache
+E:\OmarToolsBE\src\ProductService.DataAccess\obj\Debug\net9.0\ref\ProductService.DataAccess.dll

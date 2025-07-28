@@ -1,0 +1,11 @@
+E:\OmarToolsBE\src\ProductService.Domain\bin\Debug\net9.0\ProductService.Domain.deps.json
+E:\OmarToolsBE\src\ProductService.Domain\bin\Debug\net9.0\ProductService.Domain.dll
+E:\OmarToolsBE\src\ProductService.Domain\bin\Debug\net9.0\ProductService.Domain.pdb
+E:\OmarToolsBE\src\ProductService.Domain\obj\Debug\net9.0\ProductService.Domain.GeneratedMSBuildEditorConfig.editorconfig
+E:\OmarToolsBE\src\ProductService.Domain\obj\Debug\net9.0\ProductService.Domain.AssemblyInfoInputs.cache
+E:\OmarToolsBE\src\ProductService.Domain\obj\Debug\net9.0\ProductService.Domain.AssemblyInfo.cs
+E:\OmarToolsBE\src\ProductService.Domain\obj\Debug\net9.0\ProductService.Domain.csproj.CoreCompileInputs.cache
+E:\OmarToolsBE\src\ProductService.Domain\obj\Debug\net9.0\ProductService.Domain.dll
+E:\OmarToolsBE\src\ProductService.Domain\obj\Debug\net9.0\refint\ProductService.Domain.dll
+E:\OmarToolsBE\src\ProductService.Domain\obj\Debug\net9.0\ProductService.Domain.pdb
+E:\OmarToolsBE\src\ProductService.Domain\obj\Debug\net9.0\ref\ProductService.Domain.dll

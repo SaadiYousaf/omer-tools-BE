@@ -1,0 +1,15 @@
+E:\OmarToolsBE\src\ProductService.Business\bin\Debug\net9.0\ProductService.Business.deps.json
+E:\OmarToolsBE\src\ProductService.Business\bin\Debug\net9.0\ProductService.Business.dll
+E:\OmarToolsBE\src\ProductService.Business\bin\Debug\net9.0\ProductService.Business.pdb
+E:\OmarToolsBE\src\ProductService.Business\bin\Debug\net9.0\ProductService.Domain.dll
+E:\OmarToolsBE\src\ProductService.Business\bin\Debug\net9.0\ProductService.Domain.pdb
+E:\OmarToolsBE\src\ProductService.Business\obj\Debug\net9.0\ProductService.Business.csproj.AssemblyReference.cache
+E:\OmarToolsBE\src\ProductService.Business\obj\Debug\net9.0\ProductService.Business.GeneratedMSBuildEditorConfig.editorconfig
+E:\OmarToolsBE\src\ProductService.Business\obj\Debug\net9.0\ProductService.Business.AssemblyInfoInputs.cache
+E:\OmarToolsBE\src\ProductService.Business\obj\Debug\net9.0\ProductService.Business.AssemblyInfo.cs
+E:\OmarToolsBE\src\ProductService.Business\obj\Debug\net9.0\ProductService.Business.csproj.CoreCompileInputs.cache
+E:\OmarToolsBE\src\ProductService.Business\obj\Debug\net9.0\ProductS.EBA63356.Up2Date
+E:\OmarToolsBE\src\ProductService.Business\obj\Debug\net9.0\ProductService.Business.dll
+E:\OmarToolsBE\src\ProductService.Business\obj\Debug\net9.0\refint\ProductService.Business.dll
+E:\OmarToolsBE\src\ProductService.Business\obj\Debug\net9.0\ProductService.Business.pdb
+E:\OmarToolsBE\src\ProductService.Business\obj\Debug\net9.0\ref\ProductService.Business.dll
