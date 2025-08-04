@@ -22,35 +22,40 @@ namespace ProductService.Business.Services
         }
 
         #region Product Methods
+
         public async Task<ProductDto> GetProductByIdAsync(int id)
         {
-            var product = await _unitOfWork.ProductRepository.GetByIdAsync(id);
+            var product = await _unitOfWork.ProductRepository.GetByIdAsync(id, "Images");
             return _mapper.Map<ProductDto>(product);
         }
 
+
         public async Task<IEnumerable<ProductDto>> GetAllProductsAsync()
         {
-            var products = await _unitOfWork.ProductRepository.GetAllAsync();
+            var products = await _unitOfWork.ProductRepository.GetAllAsync("Images");
             return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
 
         public async Task<IEnumerable<ProductDto>> GetProductsByBrandAsync(int brandId)
         {
-            var products = await _unitOfWork.ProductRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<ProductDto>>(products.Where(p => p.BrandId == brandId));
+            var products = await _unitOfWork.ProductRepository.GetAllAsync("Images");
+            return _mapper.Map<IEnumerable<ProductDto>>(
+                products.Where(p => p.BrandId == brandId)
+            );
         }
+
+
 
         public async Task<IEnumerable<ProductDto>> GetProductsBySubcategoryAsync(int subcategoryId)
         {
-            var products = await _unitOfWork.ProductRepository.GetAllAsync();
+            var products = await _unitOfWork.ProductRepository.GetAllAsync("Images");
             return _mapper.Map<IEnumerable<ProductDto>>(
                 products.Where(p => p.SubcategoryId == subcategoryId)
             );
         }
-
         public async Task<IEnumerable<ProductDto>> GetFeaturedProductsAsync()
         {
-            var products = await _unitOfWork.ProductRepository.GetAllAsync();
+            var products = await _unitOfWork.ProductRepository.GetAllAsync("Images");
             return _mapper.Map<IEnumerable<ProductDto>>(products.Where(p => p.IsFeatured));
         }
 
@@ -254,10 +259,31 @@ namespace ProductService.Business.Services
 
         public async Task<ProductImageDto> CreateProductImageAsync(ProductImageDto imageDto)
         {
-            var image = _mapper.Map<ProductImage>(imageDto);
+            var image = new ProductImage
+            {
+                ProductId = imageDto.ProductId,
+                ImageUrl = imageDto.ImageUrl,
+                AltText = imageDto.AltText,
+                DisplayOrder = imageDto.DisplayOrder,
+                IsPrimary = imageDto.IsPrimary,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true
+            };
+
             await _unitOfWork.ProductImageRepository.AddAsync(image);
             await _unitOfWork.CompleteAsync();
-            return _mapper.Map<ProductImageDto>(image);
+
+            return new ProductImageDto(
+                image.Id,
+                image.ProductId,
+                image.ImageUrl,
+                image.AltText,
+                image.DisplayOrder,
+                image.IsPrimary,
+                image.CreatedAt,
+                image.UpdatedAt,
+                image.IsActive
+            );
         }
 
         public async Task UpdateProductImageAsync(ProductImageDto imageDto)
@@ -348,12 +374,21 @@ namespace ProductService.Business.Services
         #region Combined Methods
         public async Task<ProductFullDto> GetProductFullDetailsAsync(int id)
         {
-            var product = await _unitOfWork.ProductRepository.GetByIdAsync(id);
-            if (product == null)
-                return null;
+            var product = await _unitOfWork.ProductRepository.GetByIdAsync(id, "Images");
+            if (product == null) return null;
 
-            var result = _mapper.Map<ProductFullDto>(product);
-            return result;
+            var brand = await _unitOfWork.BrandRepository.GetByIdAsync(product.BrandId);
+            var subcategory = await _unitOfWork.SubcategoryRepository.GetByIdAsync(product.SubcategoryId);
+            var category = await _unitOfWork.CategoryRepository.GetByIdAsync(subcategory.CategoryId);
+
+            return new ProductFullDto(
+                _mapper.Map<ProductDto>(product),
+                _mapper.Map<BrandDto>(brand),
+                _mapper.Map<SubcategoryDto>(subcategory),
+                _mapper.Map<CategoryDto>(category),
+                _mapper.Map<IEnumerable<ProductImageDto>>(product.Images),
+                _mapper.Map<IEnumerable<ProductVariantDto>>(product.Variants)
+            );
         }
 
         public async Task<BrandWithCategoriesDto> GetBrandWithCategoriesAsync(int brandId)

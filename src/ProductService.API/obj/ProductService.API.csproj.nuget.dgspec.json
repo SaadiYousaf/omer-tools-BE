@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\OmarToolsBE\\src\\ProductService.API\\ProductService.API.csproj": {}
+    "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\ProductService.API.csproj": {}
   },
   "projects": {
-    "E:\\OmarToolsBE\\src\\ProductService.API\\ProductService.API.csproj": {
+    "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\ProductService.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\OmarToolsBE\\src\\ProductService.API\\ProductService.API.csproj",
+        "projectUniqueName": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\ProductService.API.csproj",
         "projectName": "ProductService.API",
-        "projectPath": "E:\\OmarToolsBE\\src\\ProductService.API\\ProductService.API.csproj",
+        "projectPath": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\ProductService.API.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "E:\\OmarToolsBE\\src\\ProductService.API\\obj\\",
+        "outputPath": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -32,11 +32,11 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "E:\\OmarToolsBE\\src\\ProductService.Business\\ProductService.Business.csproj": {
-                "projectPath": "E:\\OmarToolsBE\\src\\ProductService.Business\\ProductService.Business.csproj"
+              "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Business\\ProductService.Business.csproj": {
+                "projectPath": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Business\\ProductService.Business.csproj"
               },
-              "E:\\OmarToolsBE\\src\\ProductService.DataAccess\\ProductService.DataAccess.csproj": {
-                "projectPath": "E:\\OmarToolsBE\\src\\ProductService.DataAccess\\ProductService.DataAccess.csproj"
+              "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.DataAccess\\ProductService.DataAccess.csproj": {
+                "projectPath": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.DataAccess\\ProductService.DataAccess.csproj"
               }
             }
           }
@@ -51,7 +51,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net9.0": {
@@ -60,6 +60,10 @@
             "AutoMapper": {
               "target": "Package",
               "version": "[15.0.1, )"
+            },
+            "Microsoft.AspNetCore.Mvc.Versioning": {
+              "target": "Package",
+              "version": "[5.1.0, )"
             },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
@@ -70,6 +74,10 @@
               "suppressParent": "All",
               "target": "Package",
               "version": "[9.0.7, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite": {
+              "target": "Package",
+              "version": "[9.0.4, )"
             },
             "Swashbuckle.AspNetCore.Swagger": {
               "target": "Package",
@@ -99,18 +107,18 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.202/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "E:\\OmarToolsBE\\src\\ProductService.Business\\ProductService.Business.csproj": {
+    "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Business\\ProductService.Business.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\OmarToolsBE\\src\\ProductService.Business\\ProductService.Business.csproj",
+        "projectUniqueName": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Business\\ProductService.Business.csproj",
         "projectName": "ProductService.Business",
-        "projectPath": "E:\\OmarToolsBE\\src\\ProductService.Business\\ProductService.Business.csproj",
+        "projectPath": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Business\\ProductService.Business.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "E:\\OmarToolsBE\\src\\ProductService.Business\\obj\\",
+        "outputPath": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Business\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -131,8 +139,8 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "E:\\OmarToolsBE\\src\\ProductService.Domain\\ProductService.Domain.csproj": {
-                "projectPath": "E:\\OmarToolsBE\\src\\ProductService.Domain\\ProductService.Domain.csproj"
+              "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Domain\\ProductService.Domain.csproj": {
+                "projectPath": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Domain\\ProductService.Domain.csproj"
               }
             }
           }
@@ -147,7 +155,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net9.0": {
@@ -174,18 +182,18 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.202/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "E:\\OmarToolsBE\\src\\ProductService.DataAccess\\ProductService.DataAccess.csproj": {
+    "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.DataAccess\\ProductService.DataAccess.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\OmarToolsBE\\src\\ProductService.DataAccess\\ProductService.DataAccess.csproj",
+        "projectUniqueName": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.DataAccess\\ProductService.DataAccess.csproj",
         "projectName": "ProductService.DataAccess",
-        "projectPath": "E:\\OmarToolsBE\\src\\ProductService.DataAccess\\ProductService.DataAccess.csproj",
+        "projectPath": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.DataAccess\\ProductService.DataAccess.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "E:\\OmarToolsBE\\src\\ProductService.DataAccess\\obj\\",
+        "outputPath": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.DataAccess\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -206,8 +214,8 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "E:\\OmarToolsBE\\src\\ProductService.Domain\\ProductService.Domain.csproj": {
-                "projectPath": "E:\\OmarToolsBE\\src\\ProductService.Domain\\ProductService.Domain.csproj"
+              "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Domain\\ProductService.Domain.csproj": {
+                "projectPath": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Domain\\ProductService.Domain.csproj"
               }
             }
           }
@@ -222,7 +230,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net9.0": {
@@ -261,18 +269,18 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.202/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "E:\\OmarToolsBE\\src\\ProductService.Domain\\ProductService.Domain.csproj": {
+    "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Domain\\ProductService.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\OmarToolsBE\\src\\ProductService.Domain\\ProductService.Domain.csproj",
+        "projectUniqueName": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Domain\\ProductService.Domain.csproj",
         "projectName": "ProductService.Domain",
-        "projectPath": "E:\\OmarToolsBE\\src\\ProductService.Domain\\ProductService.Domain.csproj",
+        "projectPath": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Domain\\ProductService.Domain.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "E:\\OmarToolsBE\\src\\ProductService.Domain\\obj\\",
+        "outputPath": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -305,11 +313,21 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
+          "dependencies": {
+            "Npgsql": {
+              "target": "Package",
+              "version": "[9.0.3, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite": {
+              "target": "Package",
+              "version": "[9.0.4, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -326,7 +344,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.202/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

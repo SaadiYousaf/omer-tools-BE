@@ -22,8 +22,12 @@ namespace ProductService.Business.Mappings
                 .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images))
                 .ForMember(dest => dest.Variants, opt => opt.MapFrom(src => src.Variants))
                 .ReverseMap();
-
-            CreateMap<ProductImage, ProductImageDto>().ReverseMap();
+            CreateMap<ProductImage, ProductImageDto>()
+       .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+       .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt))
+       .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+       .ReverseMap();
+       
             CreateMap<ProductVariant, ProductVariantDto>().ReverseMap();
 
            

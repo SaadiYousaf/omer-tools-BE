@@ -1,45 +1,85 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "E:\\OmarToolsBE\\",
+  "WorkspaceRootPath": "E:\\OmarToolsBE\\omer-tools-BE\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|e:\\omartoolsbe\\src\\productservice.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|solutionrelative:src\\productservice.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.api\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|solutionrelative:src\\productservice.api\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|e:\\omartoolsbe\\src\\productservice.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|solutionrelative:src\\productservice.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{C56BDD87-8C36-42E8-9886-AF708C8B0E5B}|src\\ProductService.Business\\ProductService.Business.csproj|e:\\omartoolsbe\\src\\productservice.business\\services\\productservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{C56BDD87-8C36-42E8-9886-AF708C8B0E5B}|src\\ProductService.Business\\ProductService.Business.csproj|solutionrelative:src\\productservice.business\\services\\productservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.api\\controller\\searchcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|solutionrelative:src\\productservice.api\\controller\\searchcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|e:\\omartoolsbe\\src\\productservice.api\\controller\\productscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|solutionrelative:src\\productservice.api\\controller\\productscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{C56BDD87-8C36-42E8-9886-AF708C8B0E5B}|src\\ProductService.Business\\ProductService.Business.csproj|e:\\omartoolsbe\\src\\productservice.business\\interfaces\\iproductservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{C56BDD87-8C36-42E8-9886-AF708C8B0E5B}|src\\ProductService.Business\\ProductService.Business.csproj|solutionrelative:src\\productservice.business\\interfaces\\iproductservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D05D154E-3A74-47D9-9014-7BA16924F1B7}|src\\ProductService.DataAccess\\ProductService.DataAccess.csproj|e:\\omartoolsbe\\src\\productservice.dataaccess\\repositories\\repository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D05D154E-3A74-47D9-9014-7BA16924F1B7}|src\\ProductService.DataAccess\\ProductService.DataAccess.csproj|solutionrelative:src\\productservice.dataaccess\\repositories\\repository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D05D154E-3A74-47D9-9014-7BA16924F1B7}|src\\ProductService.DataAccess\\ProductService.DataAccess.csproj|e:\\omartoolsbe\\src\\productservice.dataaccess\\data\\productdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{D05D154E-3A74-47D9-9014-7BA16924F1B7}|src\\ProductService.DataAccess\\ProductService.DataAccess.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.dataaccess\\data\\productdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D05D154E-3A74-47D9-9014-7BA16924F1B7}|src\\ProductService.DataAccess\\ProductService.DataAccess.csproj|solutionrelative:src\\productservice.dataaccess\\data\\productdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{C56BDD87-8C36-42E8-9886-AF708C8B0E5B}|src\\ProductService.Business\\ProductService.Business.csproj|e:\\omartoolsbe\\src\\productservice.business\\mappings\\mappingprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{C56BDD87-8C36-42E8-9886-AF708C8B0E5B}|src\\ProductService.Business\\ProductService.Business.csproj|solutionrelative:src\\productservice.business\\mappings\\mappingprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{D05D154E-3A74-47D9-9014-7BA16924F1B7}|src\\ProductService.DataAccess\\ProductService.DataAccess.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.dataaccess\\npgsqlfulltextextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D05D154E-3A74-47D9-9014-7BA16924F1B7}|src\\ProductService.DataAccess\\ProductService.DataAccess.csproj|solutionrelative:src\\productservice.dataaccess\\npgsqlfulltextextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{C56BDD87-8C36-42E8-9886-AF708C8B0E5B}|src\\ProductService.Business\\ProductService.Business.csproj|e:\\omartoolsbe\\src\\productservice.business\\dtos\\productdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{D05D154E-3A74-47D9-9014-7BA16924F1B7}|src\\ProductService.DataAccess\\ProductService.DataAccess.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.dataaccess\\repositories\\repository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D05D154E-3A74-47D9-9014-7BA16924F1B7}|src\\ProductService.DataAccess\\ProductService.DataAccess.csproj|solutionrelative:src\\productservice.dataaccess\\repositories\\repository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C27F993F-B6A6-4EFE-996A-F22972A7890D}|src\\ProductService.Domain\\ProductService.Domain.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.domain\\entites\\brand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C27F993F-B6A6-4EFE-996A-F22972A7890D}|src\\ProductService.Domain\\ProductService.Domain.csproj|solutionrelative:src\\productservice.domain\\entites\\brand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C27F993F-B6A6-4EFE-996A-F22972A7890D}|src\\ProductService.Domain\\ProductService.Domain.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.domain\\entites\\baseentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C27F993F-B6A6-4EFE-996A-F22972A7890D}|src\\ProductService.Domain\\ProductService.Domain.csproj|solutionrelative:src\\productservice.domain\\entites\\baseentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C27F993F-B6A6-4EFE-996A-F22972A7890D}|src\\ProductService.Domain\\ProductService.Domain.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.domain\\interfaces\\irepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C27F993F-B6A6-4EFE-996A-F22972A7890D}|src\\ProductService.Domain\\ProductService.Domain.csproj|solutionrelative:src\\productservice.domain\\interfaces\\irepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C56BDD87-8C36-42E8-9886-AF708C8B0E5B}|src\\ProductService.Business\\ProductService.Business.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.business\\services\\productservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C56BDD87-8C36-42E8-9886-AF708C8B0E5B}|src\\ProductService.Business\\ProductService.Business.csproj|solutionrelative:src\\productservice.business\\services\\productservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C56BDD87-8C36-42E8-9886-AF708C8B0E5B}|src\\ProductService.Business\\ProductService.Business.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.business\\interfaces\\iproductservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C56BDD87-8C36-42E8-9886-AF708C8B0E5B}|src\\ProductService.Business\\ProductService.Business.csproj|solutionrelative:src\\productservice.business\\interfaces\\iproductservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.api\\controller\\categorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|solutionrelative:src\\productservice.api\\controller\\categorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C56BDD87-8C36-42E8-9886-AF708C8B0E5B}|src\\ProductService.Business\\ProductService.Business.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.business\\dtos\\productdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C56BDD87-8C36-42E8-9886-AF708C8B0E5B}|src\\ProductService.Business\\ProductService.Business.csproj|solutionrelative:src\\productservice.business\\dtos\\productdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|e:\\omartoolsbe\\src\\productservice.api\\productservice.api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "AbsoluteMoniker": "D:0:0:{C56BDD87-8C36-42E8-9886-AF708C8B0E5B}|src\\ProductService.Business\\ProductService.Business.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.business\\productservice.business.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{C56BDD87-8C36-42E8-9886-AF708C8B0E5B}|src\\ProductService.Business\\ProductService.Business.csproj|solutionrelative:src\\productservice.business\\productservice.business.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C27F993F-B6A6-4EFE-996A-F22972A7890D}|src\\ProductService.Domain\\ProductService.Domain.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.domain\\entites\\productimage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C27F993F-B6A6-4EFE-996A-F22972A7890D}|src\\ProductService.Domain\\ProductService.Domain.csproj|solutionrelative:src\\productservice.domain\\entites\\productimage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.api\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|solutionrelative:src\\productservice.api\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|solutionrelative:src\\productservice.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D05D154E-3A74-47D9-9014-7BA16924F1B7}|src\\ProductService.DataAccess\\ProductService.DataAccess.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.dataaccess\\unitofwork.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D05D154E-3A74-47D9-9014-7BA16924F1B7}|src\\ProductService.DataAccess\\ProductService.DataAccess.csproj|solutionrelative:src\\productservice.dataaccess\\unitofwork.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C56BDD87-8C36-42E8-9886-AF708C8B0E5B}|src\\ProductService.Business\\ProductService.Business.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.business\\mappings\\mappingprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C56BDD87-8C36-42E8-9886-AF708C8B0E5B}|src\\ProductService.Business\\ProductService.Business.csproj|solutionrelative:src\\productservice.business\\mappings\\mappingprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|e:\\omartoolsbe\\omer-tools-be\\src\\productservice.api\\productservice.api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
       "RelativeMoniker": "D:0:0:{7C678149-A171-42D4-9680-137783438E61}|src\\ProductService.API\\ProductService.API.csproj|solutionrelative:src\\productservice.api\\productservice.api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
     }
   ],
@@ -50,132 +90,254 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "E:\\OmarToolsBE\\src\\ProductService.API\\appsettings.json",
-              "RelativeDocumentMoniker": "src\\ProductService.API\\appsettings.json",
-              "ToolTip": "E:\\OmarToolsBE\\src\\ProductService.API\\appsettings.json",
-              "RelativeToolTip": "src\\ProductService.API\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAABEAAAAAAAAAA==",
+              "Title": "appsettings.Development.json",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\appsettings.Development.json",
+              "RelativeDocumentMoniker": "src\\ProductService.API\\appsettings.Development.json",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\appsettings.Development.json",
+              "RelativeToolTip": "src\\ProductService.API\\appsettings.Development.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-07-25T10:27:51.47Z",
+              "WhenOpened": "2025-08-03T20:07:34.289Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "ProductDbContext.cs",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.DataAccess\\Data\\ProductDbContext.cs",
+              "RelativeDocumentMoniker": "src\\ProductService.DataAccess\\Data\\ProductDbContext.cs",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.DataAccess\\Data\\ProductDbContext.cs",
+              "RelativeToolTip": "src\\ProductService.DataAccess\\Data\\ProductDbContext.cs",
+              "ViewState": "AgIAAFMAAAAAAAAAAAAAAFwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-03T19:32:30.828Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "NpgsqlFullTextExtensions.cs",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.DataAccess\\NpgsqlFullTextExtensions.cs",
+              "RelativeDocumentMoniker": "src\\ProductService.DataAccess\\NpgsqlFullTextExtensions.cs",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.DataAccess\\NpgsqlFullTextExtensions.cs",
+              "RelativeToolTip": "src\\ProductService.DataAccess\\NpgsqlFullTextExtensions.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-03T19:32:35.202Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "ProductService.cs",
-              "DocumentMoniker": "E:\\OmarToolsBE\\src\\ProductService.Business\\Services\\ProductService.cs",
-              "RelativeDocumentMoniker": "src\\ProductService.Business\\Services\\ProductService.cs",
-              "ToolTip": "E:\\OmarToolsBE\\src\\ProductService.Business\\Services\\ProductService.cs",
-              "RelativeToolTip": "src\\ProductService.Business\\Services\\ProductService.cs",
-              "ViewState": "AgIAABEAAAAAAAAAAAAawK8AAAAAAAAAAAAAAA==",
+              "Title": "SearchController.cs",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\Controller\\SearchController.cs",
+              "RelativeDocumentMoniker": "src\\ProductService.API\\Controller\\SearchController.cs",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\Controller\\SearchController.cs",
+              "RelativeToolTip": "src\\ProductService.API\\Controller\\SearchController.cs",
+              "ViewState": "AgIAAGkAAAAAAAAAAAAlwHcAAAAQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-25T09:57:08.942Z",
+              "WhenOpened": "2025-08-03T17:28:41.935Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
               "Title": "Program.cs",
-              "DocumentMoniker": "E:\\OmarToolsBE\\src\\ProductService.API\\Program.cs",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\Program.cs",
               "RelativeDocumentMoniker": "src\\ProductService.API\\Program.cs",
-              "ToolTip": "E:\\OmarToolsBE\\src\\ProductService.API\\Program.cs",
-              "RelativeToolTip": "src\\ProductService.API\\Program.cs",
-              "ViewState": "AgIAACAAAAAAAAAAAAAQwCwAAAAAAAAAAAAAAA==",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\Program.cs*",
+              "RelativeToolTip": "src\\ProductService.API\\Program.cs*",
+              "ViewState": "AgIAADsAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-07-25T09:53:54.391Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "IProductService.cs",
-              "DocumentMoniker": "E:\\OmarToolsBE\\src\\ProductService.Business\\Interfaces\\IProductService.cs",
-              "RelativeDocumentMoniker": "src\\ProductService.Business\\Interfaces\\IProductService.cs",
-              "ToolTip": "E:\\OmarToolsBE\\src\\ProductService.Business\\Interfaces\\IProductService.cs",
-              "RelativeToolTip": "src\\ProductService.Business\\Interfaces\\IProductService.cs",
-              "ViewState": "AgIAAAUAAAAAAAAAAAAqwFAAAAAFAAAAAAAAAA==",
+              "DocumentIndex": 7,
+              "Title": "BaseEntity.cs",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Domain\\Entites\\BaseEntity.cs",
+              "RelativeDocumentMoniker": "src\\ProductService.Domain\\Entites\\BaseEntity.cs",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Domain\\Entites\\BaseEntity.cs",
+              "RelativeToolTip": "src\\ProductService.Domain\\Entites\\BaseEntity.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-25T10:06:01.784Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-03T17:22:03.507Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "ProductsController.cs",
-              "DocumentMoniker": "E:\\OmarToolsBE\\src\\ProductService.API\\Controller\\ProductsController.cs",
-              "RelativeDocumentMoniker": "src\\ProductService.API\\Controller\\ProductsController.cs",
-              "ToolTip": "E:\\OmarToolsBE\\src\\ProductService.API\\Controller\\ProductsController.cs",
-              "RelativeToolTip": "src\\ProductService.API\\Controller\\ProductsController.cs",
-              "ViewState": "AgIAACMAAAAAAAAAAAAawA8AAAAkAAAAAAAAAA==",
+              "DocumentIndex": 12,
+              "Title": "ProductDtos.cs",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Business\\DTOs\\ProductDtos.cs",
+              "RelativeDocumentMoniker": "src\\ProductService.Business\\DTOs\\ProductDtos.cs",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Business\\DTOs\\ProductDtos.cs",
+              "RelativeToolTip": "src\\ProductService.Business\\DTOs\\ProductDtos.cs",
+              "ViewState": "AgIAAGIAAAAAAAAAAAAwwHIAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-25T10:28:10.091Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T12:53:11.235Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "IProductService.cs",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Business\\Interfaces\\IProductService.cs",
+              "RelativeDocumentMoniker": "src\\ProductService.Business\\Interfaces\\IProductService.cs",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Business\\Interfaces\\IProductService.cs",
+              "RelativeToolTip": "src\\ProductService.Business\\Interfaces\\IProductService.cs",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAuwBQAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-25T10:06:01.784Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "ProductService.cs",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Business\\Services\\ProductService.cs",
+              "RelativeDocumentMoniker": "src\\ProductService.Business\\Services\\ProductService.cs",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Business\\Services\\ProductService.cs",
+              "RelativeToolTip": "src\\ProductService.Business\\Services\\ProductService.cs",
+              "ViewState": "AgIAAEwAAAAAAAAAAAAAwFYAAAA7AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-25T09:57:08.942Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "IRepository.cs",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Domain\\Interfaces\\IRepository.cs",
+              "RelativeDocumentMoniker": "src\\ProductService.Domain\\Interfaces\\IRepository.cs",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Domain\\Interfaces\\IRepository.cs",
+              "RelativeToolTip": "src\\ProductService.Domain\\Interfaces\\IRepository.cs",
+              "ViewState": "AgIAABkAAAAAAAAAAAAAwB4AAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T12:03:01.931Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 5,
               "Title": "Repository.cs",
-              "DocumentMoniker": "E:\\OmarToolsBE\\src\\ProductService.DataAccess\\Repositories\\Repository.cs",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.DataAccess\\Repositories\\Repository.cs",
               "RelativeDocumentMoniker": "src\\ProductService.DataAccess\\Repositories\\Repository.cs",
-              "ToolTip": "E:\\OmarToolsBE\\src\\ProductService.DataAccess\\Repositories\\Repository.cs",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.DataAccess\\Repositories\\Repository.cs",
               "RelativeToolTip": "src\\ProductService.DataAccess\\Repositories\\Repository.cs",
-              "ViewState": "AgIAAAQAAAAAAAAAAAAAwA4AAAAeAAAAAAAAAA==",
+              "ViewState": "AgIAAJ4AAAAAAAAAAAAAAK4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-25T10:21:55.779Z",
+              "WhenOpened": "2025-08-02T12:01:58.914Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 6,
-              "Title": "ProductDbContext.cs",
-              "DocumentMoniker": "E:\\OmarToolsBE\\src\\ProductService.DataAccess\\Data\\ProductDbContext.cs",
-              "RelativeDocumentMoniker": "src\\ProductService.DataAccess\\Data\\ProductDbContext.cs",
-              "ToolTip": "E:\\OmarToolsBE\\src\\ProductService.DataAccess\\Data\\ProductDbContext.cs",
-              "RelativeToolTip": "src\\ProductService.DataAccess\\Data\\ProductDbContext.cs",
-              "ViewState": "AgIAADcAAAAAAAAAAAAlwAAAAAAAAAAAAAAAAA==",
+              "Title": "Brand.cs",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Domain\\Entites\\Brand.cs",
+              "RelativeDocumentMoniker": "src\\ProductService.Domain\\Entites\\Brand.cs",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Domain\\Entites\\Brand.cs",
+              "RelativeToolTip": "src\\ProductService.Domain\\Entites\\Brand.cs",
+              "ViewState": "AgIAABQAAAAAAAAAAAAAAA0AAAAuAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-25T10:20:41.169Z",
+              "WhenOpened": "2025-08-02T10:17:36.192Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "CategoryController.cs",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\Controller\\CategoryController.cs",
+              "RelativeDocumentMoniker": "src\\ProductService.API\\Controller\\CategoryController.cs",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\Controller\\CategoryController.cs",
+              "RelativeToolTip": "src\\ProductService.API\\Controller\\CategoryController.cs",
+              "ViewState": "AgIAANQAAAAAAAAAAAAmwOYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:46:44.072Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "src\\ProductService.API\\Properties\\launchSettings.json",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\Properties\\launchSettings.json",
+              "RelativeToolTip": "src\\ProductService.API\\Properties\\launchSettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-08-02T16:48:18.073Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "ProductService.Business.csproj",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Business\\ProductService.Business.csproj",
+              "RelativeDocumentMoniker": "src\\ProductService.Business\\ProductService.Business.csproj",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Business\\ProductService.Business.csproj",
+              "RelativeToolTip": "src\\ProductService.Business\\ProductService.Business.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-08-02T14:32:49.182Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 14,
+              "Title": "ProductImage.cs",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Domain\\Entites\\ProductImage.cs",
+              "RelativeDocumentMoniker": "src\\ProductService.Domain\\Entites\\ProductImage.cs",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Domain\\Entites\\ProductImage.cs",
+              "RelativeToolTip": "src\\ProductService.Domain\\Entites\\ProductImage.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T14:13:05.698Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\appsettings.json",
+              "RelativeDocumentMoniker": "src\\ProductService.API\\appsettings.json",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\appsettings.json",
+              "RelativeToolTip": "src\\ProductService.API\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-07-25T10:27:51.47Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "UnitOfWork.cs",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.DataAccess\\UnitOfWork.cs",
+              "RelativeDocumentMoniker": "src\\ProductService.DataAccess\\UnitOfWork.cs",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.DataAccess\\UnitOfWork.cs",
+              "RelativeToolTip": "src\\ProductService.DataAccess\\UnitOfWork.cs",
+              "ViewState": "AgIAABoAAAAAAAAAAAAowCYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T06:15:23.863Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
               "Title": "MappingProfile.cs",
-              "DocumentMoniker": "E:\\OmarToolsBE\\src\\ProductService.Business\\Mappings\\MappingProfile.cs",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Business\\Mappings\\MappingProfile.cs",
               "RelativeDocumentMoniker": "src\\ProductService.Business\\Mappings\\MappingProfile.cs",
-              "ToolTip": "E:\\OmarToolsBE\\src\\ProductService.Business\\Mappings\\MappingProfile.cs",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.Business\\Mappings\\MappingProfile.cs",
               "RelativeToolTip": "src\\ProductService.Business\\Mappings\\MappingProfile.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABwAAAALAAAAAAAAAA==",
+              "ViewState": "AgIAABMAAAAAAAAAAAAAABMAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-25T10:18:32.561Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-25T10:18:32.561Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "ProductDtos.cs",
-              "DocumentMoniker": "E:\\OmarToolsBE\\src\\ProductService.Business\\DTOs\\ProductDtos.cs",
-              "RelativeDocumentMoniker": "src\\ProductService.Business\\DTOs\\ProductDtos.cs",
-              "ToolTip": "E:\\OmarToolsBE\\src\\ProductService.Business\\DTOs\\ProductDtos.cs",
-              "RelativeToolTip": "src\\ProductService.Business\\DTOs\\ProductDtos.cs",
-              "ViewState": "AgIAAFUAAAAAAAAAAAAQwGYAAAAzAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-25T10:14:54.71Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 19,
               "Title": "ProductService.API.csproj",
-              "DocumentMoniker": "E:\\OmarToolsBE\\src\\ProductService.API\\ProductService.API.csproj",
+              "DocumentMoniker": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\ProductService.API.csproj",
               "RelativeDocumentMoniker": "src\\ProductService.API\\ProductService.API.csproj",
-              "ToolTip": "E:\\OmarToolsBE\\src\\ProductService.API\\ProductService.API.csproj",
+              "ToolTip": "E:\\OmarToolsBE\\omer-tools-BE\\src\\ProductService.API\\ProductService.API.csproj",
               "RelativeToolTip": "src\\ProductService.API\\ProductService.API.csproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",

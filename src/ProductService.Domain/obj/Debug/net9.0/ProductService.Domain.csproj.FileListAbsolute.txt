@@ -9,3 +9,17 @@ E:\OmarToolsBE\src\ProductService.Domain\obj\Debug\net9.0\ProductService.Domain.
 E:\OmarToolsBE\src\ProductService.Domain\obj\Debug\net9.0\refint\ProductService.Domain.dll
 E:\OmarToolsBE\src\ProductService.Domain\obj\Debug\net9.0\ProductService.Domain.pdb
 E:\OmarToolsBE\src\ProductService.Domain\obj\Debug\net9.0\ref\ProductService.Domain.dll
+E:\OmarToolsBE\omer-tools-BE\src\ProductService.Domain\bin\Debug\net9.0\ProductService.Domain.deps.json
+E:\OmarToolsBE\omer-tools-BE\src\ProductService.Domain\bin\Debug\net9.0\ProductService.Domain.dll
+E:\OmarToolsBE\omer-tools-BE\src\ProductService.Domain\bin\Debug\net9.0\ProductService.Domain.pdb
+E:\OmarToolsBE\omer-tools-BE\src\ProductService.Domain\obj\Debug\net9.0\ProductService.Domain.csproj.AssemblyReference.cache
+E:\OmarToolsBE\omer-tools-BE\src\ProductService.Domain\obj\Debug\net9.0\ProductService.Domain.GeneratedMSBuildEditorConfig.editorconfig
+E:\OmarToolsBE\omer-tools-BE\src\ProductService.Domain\obj\Debug\net9.0\ProductService.Domain.AssemblyInfoInputs.cache
+E:\OmarToolsBE\omer-tools-BE\src\ProductService.Domain\obj\Debug\net9.0\ProductService.Domain.AssemblyInfo.cs
+E:\OmarToolsBE\omer-tools-BE\src\ProductService.Domain\obj\Debug\net9.0\ProductService.Domain.csproj.CoreCompileInputs.cache
+E:\OmarToolsBE\omer-tools-BE\src\ProductService.Domain\obj\Debug\net9.0\EFCoreNpgsqlNetTopologySuite.cs
+E:\OmarToolsBE\omer-tools-BE\src\ProductService.Domain\obj\Debug\net9.0\ProductService.Domain.sourcelink.json
+E:\OmarToolsBE\omer-tools-BE\src\ProductService.Domain\obj\Debug\net9.0\ProductService.Domain.dll
+E:\OmarToolsBE\omer-tools-BE\src\ProductService.Domain\obj\Debug\net9.0\refint\ProductService.Domain.dll
+E:\OmarToolsBE\omer-tools-BE\src\ProductService.Domain\obj\Debug\net9.0\ProductService.Domain.pdb
+E:\OmarToolsBE\omer-tools-BE\src\ProductService.Domain\obj\Debug\net9.0\ref\ProductService.Domain.dll

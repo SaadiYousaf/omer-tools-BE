@@ -1,3 +1,4 @@
+using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace ProductService.Domain.Entites
         public string Description { get; set; }
         public string ImageUrl { get; set; }
         public int DisplayOrder { get; set; }
-
+        public NpgsqlTsVector SearchVector { get; set; }
         public Brand Brand { get; set; }
         public ICollection<Subcategory> Subcategories { get; set; } = new List<Subcategory>();
     }

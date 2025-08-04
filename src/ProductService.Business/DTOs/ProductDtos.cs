@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace ProductService.Business.DTOs
 {
+
     public record BrandDto(
         int Id,
         string Name,
@@ -74,7 +75,13 @@ namespace ProductService.Business.DTOs
         DateTime CreatedAt,
         DateTime? UpdatedAt,
         bool IsActive
-    );
+    )
+    {
+        // Add parameterless constructor for AutoMapper
+        public ProductImageDto() : this(0, 0, "", "", 0, false, DateTime.UtcNow, null, true)
+        {
+        }
+    };
 
     public record ProductVariantDto(
         int Id,
