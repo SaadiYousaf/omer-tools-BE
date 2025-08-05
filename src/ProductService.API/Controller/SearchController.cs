@@ -106,7 +106,6 @@ namespace ProductService.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
-
         [HttpGet]
         public async Task<IActionResult> SearchProducts([FromQuery] SearchQueryDto query)
         {
@@ -114,36 +113,44 @@ namespace ProductService.API.Controllers
             {
                 if (string.IsNullOrWhiteSpace(query.Term))
                 {
-                    return BadRequest("Search query is required");
+                    return BadRequest("Search term is required.");
                 }
 
-                var normalizedTerm = query.Term.Trim().ToLower();
-                var tsQuery = NpgsqlTsQuery.Parse(normalizedTerm);
+                var term = query.Term.Trim().ToLower();
+                var tsQuery = NpgsqlTsQuery.Parse(term);
 
+                // Start query
                 var baseQuery = _context.Products
                     .Include(p => p.Brand)
-                    .Include(p => p.Subcategory)
-                        .ThenInclude(s => s.Category)
+                    .Include(p => p.Subcategory).ThenInclude(c => c.Category)
                     .Include(p => p.Images)
                     .AsQueryable();
 
+                // Apply basic search filters
                 baseQuery = baseQuery.Where(p =>
-         p.SearchVector.Matches(tsQuery) ||
-         EF.Functions.ILike(p.Name, $"%{normalizedTerm}%") ||
-         EF.Functions.ILike(p.Description, $"%{normalizedTerm}%") ||
-         EF.Functions.ILike(EF.Property<string>(p, "Specifications"), $"%{normalizedTerm}%")
-     );
+                    p.SearchVector.Matches(tsQuery) ||
+                    EF.Functions.ILike(p.Name, $"%{term}%") ||
+                    EF.Functions.ILike(p.Description, $"%{term}%")
+                );
 
+                // ✅ Apply Specifications JSONB filter via raw SQL subquery
+                var jsonbFilter = _context.Products
+                    .FromSqlRaw(@$"
+                SELECT * FROM ""products""
+                WHERE ""Specifications""::text ILIKE {{0}}", $"%{term}%")
+                    .Select(p => p.Id);
 
+                baseQuery = baseQuery.Where(p => jsonbFilter.Contains(p.Id));
 
-                if (query.CategoryId.HasValue && query.CategoryId.Value > 0)
+                // Apply optional filters
+                if (query.CategoryId.HasValue && query.CategoryId > 0)
                 {
                     baseQuery = baseQuery.Where(p =>
                         p.Subcategory.CategoryId == query.CategoryId ||
                         p.SubcategoryId == query.CategoryId);
                 }
 
-                if (query.BrandId.HasValue && query.BrandId.Value > 0)
+                if (query.BrandId.HasValue && query.BrandId > 0)
                 {
                     baseQuery = baseQuery.Where(p => p.BrandId == query.BrandId);
                 }
@@ -158,6 +165,9 @@ namespace ProductService.API.Controllers
                     baseQuery = baseQuery.Where(p => p.Price <= query.MaxPrice.Value);
                 }
 
+
+
+                // Sorting
                 baseQuery = query.SortBy switch
                 {
                     "price_asc" => baseQuery.OrderBy(p => p.Price),
@@ -165,10 +175,12 @@ namespace ProductService.API.Controllers
                     "name_asc" => baseQuery.OrderBy(p => p.Name),
                     "name_desc" => baseQuery.OrderByDescending(p => p.Name),
                     "featured" => baseQuery.OrderByDescending(p => p.IsFeatured),
-                    _ => baseQuery.OrderByDescending(p => NpgsqlFullTextExtensions.TsRank(p.SearchVector, tsQuery))
+                    _ => baseQuery
+                        .OrderByDescending(p => NpgsqlFullTextExtensions.TsRank(p.SearchVector, tsQuery))
                         .ThenByDescending(p => p.IsFeatured)
                 };
 
+                // Pagination
                 var totalCount = await baseQuery.CountAsync();
                 var totalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize);
 
@@ -187,10 +199,7 @@ namespace ProductService.API.Controllers
                         SubcategoryId = p.SubcategoryId,
                         Price = p.Price,
                         DiscountPrice = p.DiscountPrice,
-                        ImageUrl = p.Images
-                            .Where(i => i.IsPrimary)
-                            .Select(i => i.ImageUrl)
-                            .FirstOrDefault(),
+                        ImageUrl = p.Images.Where(i => i.IsPrimary).Select(i => i.ImageUrl).FirstOrDefault(),
                         IsFeatured = p.IsFeatured,
                         StockStatus = p.StockQuantity > 0 ? "In Stock" : "Out of Stock",
                         Relevance = NpgsqlFullTextExtensions.TsRank(p.SearchVector, tsQuery)
@@ -204,21 +213,132 @@ namespace ProductService.API.Controllers
                     PageSize = query.PageSize,
                     TotalCount = totalCount,
                     TotalPages = totalPages,
-                    Results = products,
-                    Filters = new SearchFiltersDto
-                    {
-                        Categories = await GetCategoryFilters(tsQuery),
-                        Brands = await GetBrandFilters(tsQuery),
-                        PriceRange = await GetPriceRange()
-                    }
+                    Results = products
                 });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error searching products");
-                return StatusCode(500, "Internal server error");
+                return StatusCode(500, ex.ToString());
             }
         }
+
+
+
+        //   [HttpGet]
+        //   public async Task<IActionResult> SearchProducts([FromQuery] SearchQueryDto query)
+        //   {
+        //       try
+        //       {
+        //           if (string.IsNullOrWhiteSpace(query.Term))
+        //           {
+        //               return BadRequest("Search query is required");
+        //           }
+
+        //           var normalizedTerm = query.Term.Trim().ToLower();
+        //           var tsQuery = NpgsqlTsQuery.Parse(normalizedTerm);
+
+        //           var baseQuery = _context.Products
+        //               .Include(p => p.Brand)
+        //               .Include(p => p.Subcategory)
+        //                   .ThenInclude(s => s.Category)
+        //               .Include(p => p.Images)
+        //               .AsQueryable();
+
+        //           baseQuery = baseQuery.Where(p =>
+        //    p.SearchVector.Matches(tsQuery) ||
+        //    EF.Functions.ILike(p.Name, $"%{normalizedTerm}%") ||
+        //    EF.Functions.ILike(p.Description, $"%{normalizedTerm}%") //||
+        //  //  EF.Functions.ILike(EF.Property<string>(p, "Specifications"), $"%{normalizedTerm}%")
+        //   // EF.Functions.ILike(p.Specifications, $"%{normalizedTerm}%")
+
+        //);
+
+
+
+        //           if (query.CategoryId.HasValue && query.CategoryId.Value > 0)
+        //           {
+        //               baseQuery = baseQuery.Where(p =>
+        //                   p.Subcategory.CategoryId == query.CategoryId ||
+        //                   p.SubcategoryId == query.CategoryId);
+        //           }
+
+        //           if (query.BrandId.HasValue && query.BrandId.Value > 0)
+        //           {
+        //               baseQuery = baseQuery.Where(p => p.BrandId == query.BrandId);
+        //           }
+
+        //           if (query.MinPrice.HasValue)
+        //           {
+        //               baseQuery = baseQuery.Where(p => p.Price >= query.MinPrice.Value);
+        //           }
+
+        //           if (query.MaxPrice.HasValue)
+        //           {
+        //               baseQuery = baseQuery.Where(p => p.Price <= query.MaxPrice.Value);
+        //           }
+
+        //           baseQuery = query.SortBy switch
+        //           {
+        //               "price_asc" => baseQuery.OrderBy(p => p.Price),
+        //               "price_desc" => baseQuery.OrderByDescending(p => p.Price),
+        //               "name_asc" => baseQuery.OrderBy(p => p.Name),
+        //               "name_desc" => baseQuery.OrderByDescending(p => p.Name),
+        //               "featured" => baseQuery.OrderByDescending(p => p.IsFeatured),
+        //               _ => baseQuery.OrderByDescending(p => NpgsqlFullTextExtensions.TsRank(p.SearchVector, tsQuery))
+        //                   .ThenByDescending(p => p.IsFeatured)
+        //           };
+
+        //           var totalCount = await baseQuery.CountAsync();
+        //           var totalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize);
+
+        //           var products = await baseQuery
+        //               .Skip((query.Page - 1) * query.PageSize)
+        //               .Take(query.PageSize)
+        //               .Select(p => new ProductSearchResultDto
+        //               {
+        //                   Id = p.Id,
+        //                   Name = p.Name,
+        //                   SKU = p.SKU,
+        //                   Brand = p.Brand.Name,
+        //                   BrandId = p.BrandId,
+        //                   Category = $"{p.Subcategory.Category.Name} > {p.Subcategory.Name}",
+        //                   CategoryId = p.Subcategory.CategoryId,
+        //                   SubcategoryId = p.SubcategoryId,
+        //                   Price = p.Price,
+        //                   DiscountPrice = p.DiscountPrice,
+        //                   ImageUrl = p.Images
+        //                       .Where(i => i.IsPrimary)
+        //                       .Select(i => i.ImageUrl)
+        //                       .FirstOrDefault(),
+        //                   IsFeatured = p.IsFeatured,
+        //                   StockStatus = p.StockQuantity > 0 ? "In Stock" : "Out of Stock",
+        //                   Relevance = NpgsqlFullTextExtensions.TsRank(p.SearchVector, tsQuery)
+        //               })
+        //               .ToListAsync();
+
+        //           return Ok(new SearchResultsDto
+        //           {
+        //               Query = query.Term,
+        //               Page = query.Page,
+        //               PageSize = query.PageSize,
+        //               TotalCount = totalCount,
+        //               TotalPages = totalPages,
+        //               Results = products,
+        //               Filters = new SearchFiltersDto
+        //               {
+        //                   Categories = await GetCategoryFilters(tsQuery),
+        //                   Brands = await GetBrandFilters(tsQuery),
+        //                   PriceRange = await GetPriceRange()
+        //               }
+        //           });
+        //       }
+        //       catch (Exception ex)
+        //       {
+        //           _logger.LogError(ex, "Error searching products");
+        //           return StatusCode(500, "Internal server error");
+        //       }
+        //   }
 
         private async Task<List<CategoryFilterDto>> GetCategoryFilters(NpgsqlTsQuery tsQuery)
         {

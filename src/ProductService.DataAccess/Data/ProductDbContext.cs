@@ -1,10 +1,9 @@
-using Microsoft.EntityFrameworkCore;
-using NpgsqlTypes;
-using ProductService.Domain.Entites;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using ProductService.Domain.Entites;
 
 namespace ProductService.DataAccess.Data;
 
@@ -38,23 +37,6 @@ public class ProductDbContext : DbContext
             entity.Property(b => b.LogoUrl).HasMaxLength(255);
             entity.Property(b => b.WebsiteUrl).HasMaxLength(255);
         });
-        modelBuilder.Entity<Product>()
-       .Property<NpgsqlTsVector>("SearchVector")
-       .HasColumnType("tsvector");
-
-        modelBuilder.Entity<Brand>()
-            .Property<NpgsqlTsVector>("SearchVector")
-            .HasColumnType("tsvector");
-
-        modelBuilder.Entity<Category>()
-            .Property<NpgsqlTsVector>("SearchVector")
-            .HasColumnType("tsvector");
-
-        modelBuilder.Entity<Subcategory>()
-            .Property<NpgsqlTsVector>("SearchVector")
-            .HasColumnType("tsvector");
-
-        modelBuilder.HasPostgresExtension("pg_trgm");
 
         // Configure Category
         modelBuilder.Entity<Category>(entity =>
@@ -85,11 +67,6 @@ public class ProductDbContext : DbContext
                 .HasForeignKey(s => s.CategoryId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-
-    modelBuilder.HasDbFunction(() => 
-        NpgsqlFullTextExtensions.TsRank(default!, default!))
-        .HasName("ts_rank");
-
 
         // Configure Product
         modelBuilder.Entity<Product>(entity =>
