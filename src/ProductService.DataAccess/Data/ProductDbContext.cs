@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ProductService.Domain.Entites;
 using ProductService.Domain.Entities;
 using System;
+using UserService.Domain.Entities;
 
 namespace ProductService.DataAccess.Data
 {
@@ -23,6 +24,9 @@ namespace ProductService.DataAccess.Data
         public DbSet<User> Users { get; set; }
         public DbSet<ShippingAddress> ShippingAddresses { get; set; }
         public DbSet<BrandCategory> BrandCategories { get; set; }
+        public DbSet<Address> Addresses { get; set; }
+        public DbSet<PaymentMethod> PaymentMethods { get; set; }
+        public DbSet<UserPreferences> UserPreferences { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -53,10 +57,23 @@ namespace ProductService.DataAccess.Data
                 entity.Property(u => u.FirstName).HasMaxLength(100).IsRequired(false);
                 entity.Property(u => u.LastName).HasMaxLength(100).IsRequired(false);
                 entity.Property(u => u.PhoneNumber).HasMaxLength(20).IsRequired(false);
-                entity.Property(u => u.Address).HasMaxLength(500).IsRequired(false);
+                entity.HasMany(u => u.Addresses)
+               .WithOne(a => a.User)
+               .HasForeignKey(a => a.UserId)
+               .OnDelete(DeleteBehavior.Cascade);
 
-                // Set default values
-                entity.Property(u => u.CreatedAt)
+                entity.HasMany(u => u.PaymentMethods)
+                    .WithOne(p => p.User)
+                    .HasForeignKey(p => p.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(u => u.Preferences)
+                    .WithOne(p => p.User)
+                    .HasForeignKey<UserPreferences>(p => p.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            
+            // Set default values
+            entity.Property(u => u.CreatedAt)
                     .HasDefaultValueSql("GETUTCDATE()");
                 entity.Property(u => u.IsActive)
                     .HasDefaultValue(true);
@@ -230,7 +247,35 @@ namespace ProductService.DataAccess.Data
                 entity.Property(pv => pv.IsActive)
                     .HasDefaultValue(true);
             });
+            modelBuilder.Entity<Address>(entity =>
+            {
+                entity.HasKey(a => a.Id);
+                entity.Property(a => a.AddressType).IsRequired().HasMaxLength(50);
+                entity.Property(a => a.FullName).IsRequired().HasMaxLength(100);
+                entity.Property(a => a.AddressLine1).IsRequired().HasMaxLength(200);
+                entity.Property(a => a.City).IsRequired().HasMaxLength(100);
+                entity.Property(a => a.State).IsRequired().HasMaxLength(100);
+                entity.Property(a => a.PostalCode).IsRequired().HasMaxLength(20);
+                entity.Property(a => a.Country).IsRequired().HasMaxLength(100);
+            });
 
+            // PaymentMethod configuration
+            modelBuilder.Entity<PaymentMethod>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+                entity.Property(p => p.PaymentType).IsRequired().HasMaxLength(50);
+                entity.Property(p => p.Provider).IsRequired().HasMaxLength(50);
+                entity.Property(p => p.Last4Digits).IsRequired().HasMaxLength(4);
+            });
+
+            // UserPreferences configuration
+            modelBuilder.Entity<UserPreferences>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+                entity.Property(p => p.Language).HasMaxLength(10).HasDefaultValue("en");
+                entity.Property(p => p.Currency).HasMaxLength(3).HasDefaultValue("USD");
+                entity.Property(p => p.Theme).HasMaxLength(10).HasDefaultValue("System");
+            });
             modelBuilder.Entity<Order>(entity =>
             {
                 entity.HasKey(o => o.Id);

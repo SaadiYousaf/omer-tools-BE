@@ -6,6 +6,7 @@ using AutoMapper;
 using ProductService.Business.DTOs;
 using ProductService.Domain.Entites;
 using ProductService.Domain.Entities;
+using UserService.Domain.Entities;
 
 namespace ProductService.Business.Mappings
 {
@@ -59,6 +60,22 @@ namespace ProductService.Business.Mappings
             CreateMap<Category, CategoryWithSubcategoriesDto>()
                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src))
                 .ForMember(dest => dest.Subcategories, opt => opt.MapFrom(src => src.Subcategories));
+            CreateMap<UserRegistrationDto, User>();
+            CreateMap<User, UserDto>();
+            CreateMap<Address, AddressDto>().ReverseMap();
+            CreateMap<PaymentMethod, PaymentMethodDto>().ReverseMap();
+            CreateMap<UserPreferences, UserPreferencesDto>().ReverseMap();
+            CreateMap<UpdateProfileDto, User>();
+            CreateMap<CreateAddressDto, Address>();
+            CreateMap<UpdateAddressDto, Address>();
+            CreateMap<Address, AddressDto>();
+
+            CreateMap<CreatePaymentMethodDto, PaymentMethod>();
+            CreateMap<UpdatePaymentMethodDto, PaymentMethod>();
+            CreateMap<PaymentMethod, PaymentMethodDto>();
+
+            CreateMap<UpdateUserPreferencesDto, UserPreferences>();
+            CreateMap<UserPreferences, UserPreferencesDto>();
         }
     }
 }

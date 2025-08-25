@@ -1,4 +1,6 @@
-﻿namespace ProductService.Domain.Entities
+﻿using UserService.Domain.Entities;
+
+namespace ProductService.Domain.Entities
 {
     public class Order : BaseEntity
     {

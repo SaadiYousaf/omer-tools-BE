@@ -1,14 +1,14 @@
-﻿// Domain/Interfaces/IUserRepository.cs
-using ProductService.Domain.Entites;
-using ProductService.Domain.Entities;
-using System.Threading.Tasks;
+﻿using UserService.Domain.Entities;
 
-namespace ProductService.Domain.Interfaces
+public interface IUserRepository
 {
-    public interface IUserRepository
-    {
-        Task<User> GetUserByEmailAsync(string email);
-        Task CreateUserAsync(User user);
-        Task<bool> UserExists(string email);
-    }
+    Task<User> GetByIdAsync(string id);
+    Task<User> GetByEmailAsync(string email);
+    Task<bool> UserExistsAsync(string email);
+    Task CreateAsync(User user);
+    Task UpdateAsync(User user);
+    Task<bool> DeleteAsync(string id);
+    Task AddRefreshTokenAsync(string userId, string refreshToken, DateTime expiry);
+    Task<User> GetUserByRefreshTokenAsync(string refreshToken);
+    Task RevokeRefreshTokenAsync(string userId);
 }

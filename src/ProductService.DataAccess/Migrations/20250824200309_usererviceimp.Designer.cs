@@ -12,8 +12,8 @@ using ProductService.DataAccess.Data;
 namespace ProductService.DataAccess.Migrations
 {
     [DbContext(typeof(ProductDbContext))]
-    [Migration("20250821164836_devdb")]
-    partial class devdb
+    [Migration("20250824200309_usererviceimp")]
+    partial class usererviceimp
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,13 +25,78 @@ namespace ProductService.DataAccess.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("ProductService.Domain.Entites.Address", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AddressLine1")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("AddressLine2")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AddressType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PostalCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Addresses");
+                });
+
             modelBuilder.Entity("ProductService.Domain.Entites.Brand", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("CategoryId")
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -66,9 +131,87 @@ namespace ProductService.DataAccess.Migrations
 
                     b.HasKey("Id");
 
+                    b.ToTable("brands", (string)null);
+                });
+
+            modelBuilder.Entity("ProductService.Domain.Entites.BrandCategory", b =>
+                {
+                    b.Property<string>("BrandId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("CategoryId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("BrandId", "CategoryId");
+
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("brands", (string)null);
+                    b.ToTable("BrandCategories");
+                });
+
+            modelBuilder.Entity("ProductService.Domain.Entites.PaymentMethod", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ExpiryMonth")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExpiryYear")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Last4Digits")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
+
+                    b.Property<string>("PaymentMethodId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PaymentMethods");
                 });
 
             modelBuilder.Entity("ProductService.Domain.Entites.ProductImage", b =>
@@ -165,6 +308,56 @@ namespace ProductService.DataAccess.Migrations
                     b.ToTable("product_variants", (string)null);
                 });
 
+            modelBuilder.Entity("ProductService.Domain.Entites.UserPreferences", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Currency")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)")
+                        .HasDefaultValue("USD");
+
+                    b.Property<bool>("EmailNotifications")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Language")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasDefaultValue("en");
+
+                    b.Property<bool>("SmsNotifications")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Theme")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasDefaultValue("System");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
+
+                    b.ToTable("UserPreferences");
+                });
+
             modelBuilder.Entity("ProductService.Domain.Entities.Category", b =>
                 {
                     b.Property<string>("Id")
@@ -212,8 +405,7 @@ namespace ProductService.DataAccess.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("BillingAddress")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -237,10 +429,6 @@ namespace ProductService.DataAccess.Migrations
                     b.Property<string>("SessionId")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("ShippingAddress")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
 
                     b.Property<decimal>("ShippingCost")
                         .HasColumnType("decimal(18,2)");
@@ -565,15 +753,63 @@ namespace ProductService.DataAccess.Migrations
                     b.ToTable("subcategories", (string)null);
                 });
 
-            modelBuilder.Entity("ProductService.Domain.Entities.User", b =>
+            modelBuilder.Entity("ShippingAddress", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("Address")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                    b.Property<string>("AddressLine1")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("AddressLine2")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("OrderId")
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("PostalCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId")
+                        .IsUnique()
+                        .HasFilter("[OrderId] IS NOT NULL");
+
+                    b.ToTable("shipping_addresses", (string)null);
+                });
+
+            modelBuilder.Entity("UserService.Domain.Entities.User", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -594,6 +830,9 @@ namespace ProductService.DataAccess.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
+                    b.Property<DateTime?>("LastLogin")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("LastName")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -609,6 +848,12 @@ namespace ProductService.DataAccess.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RefreshTokenExpiry")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -617,14 +862,43 @@ namespace ProductService.DataAccess.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-            modelBuilder.Entity("ProductService.Domain.Entites.Brand", b =>
+            modelBuilder.Entity("ProductService.Domain.Entites.Address", b =>
                 {
+                    b.HasOne("UserService.Domain.Entities.User", "User")
+                        .WithMany("Addresses")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ProductService.Domain.Entites.BrandCategory", b =>
+                {
+                    b.HasOne("ProductService.Domain.Entites.Brand", "Brand")
+                        .WithMany("BrandCategories")
+                        .HasForeignKey("BrandId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ProductService.Domain.Entities.Category", "Category")
-                        .WithMany("Brands")
+                        .WithMany("BrandCategories")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Brand");
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("ProductService.Domain.Entites.PaymentMethod", b =>
+                {
+                    b.HasOne("UserService.Domain.Entities.User", "User")
+                        .WithMany("PaymentMethods")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ProductService.Domain.Entites.ProductImage", b =>
@@ -647,9 +921,19 @@ namespace ProductService.DataAccess.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("ProductService.Domain.Entites.UserPreferences", b =>
+                {
+                    b.HasOne("UserService.Domain.Entities.User", "User")
+                        .WithOne("Preferences")
+                        .HasForeignKey("ProductService.Domain.Entites.UserPreferences", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ProductService.Domain.Entities.Order", b =>
                 {
-                    b.HasOne("ProductService.Domain.Entities.User", "User")
+                    b.HasOne("UserService.Domain.Entities.User", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -714,14 +998,26 @@ namespace ProductService.DataAccess.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("ShippingAddress", b =>
+                {
+                    b.HasOne("ProductService.Domain.Entities.Order", "Order")
+                        .WithOne("ShippingAddress")
+                        .HasForeignKey("ShippingAddress", "OrderId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("ProductService.Domain.Entites.Brand", b =>
                 {
+                    b.Navigation("BrandCategories");
+
                     b.Navigation("Products");
                 });
 
             modelBuilder.Entity("ProductService.Domain.Entities.Category", b =>
                 {
-                    b.Navigation("Brands");
+                    b.Navigation("BrandCategories");
 
                     b.Navigation("Subcategories");
                 });
@@ -731,6 +1027,8 @@ namespace ProductService.DataAccess.Migrations
                     b.Navigation("Items");
 
                     b.Navigation("Payments");
+
+                    b.Navigation("ShippingAddress");
                 });
 
             modelBuilder.Entity("ProductService.Domain.Entities.Payment", b =>
@@ -750,9 +1048,15 @@ namespace ProductService.DataAccess.Migrations
                     b.Navigation("Products");
                 });
 
-            modelBuilder.Entity("ProductService.Domain.Entities.User", b =>
+            modelBuilder.Entity("UserService.Domain.Entities.User", b =>
                 {
+                    b.Navigation("Addresses");
+
                     b.Navigation("Orders");
+
+                    b.Navigation("PaymentMethods");
+
+                    b.Navigation("Preferences");
                 });
 #pragma warning restore 612, 618
         }

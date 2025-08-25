@@ -1,22 +1,22 @@
-﻿// Business/Interfaces/IAuthService.cs
-using ProductService.Domain.Entites;
-using ProductService.Domain.Entities;
-using System.Threading.Tasks;
+﻿using ProductService.Business.DTOs;
 
-namespace ProductService.Business.Interfaces
+public interface IAuthService
 {
-    public class AuthResult
-    {
-        public bool Success { get; set; }
-        public string Message { get; set; }
-        public string Token { get; set; }
-        public User User { get; set; }
-    }
+    Task<AuthResult> RegisterAsync(UserRegistrationDto registrationDto);
+    Task<AuthResult> LoginAsync(LoginRequestDto loginRequest);
+    Task<AuthResult> RefreshTokenAsync(string token, string refreshToken);
+    Task<bool> RevokeTokenAsync(string userId);
+    Task<bool> ChangePasswordAsync(string userId, ChangePasswordDto changePasswordDto);
+    Task<bool> RequestPasswordResetAsync(string email);
+    Task<bool> ResetPasswordAsync(ResetPasswordDto resetPasswordDto);
+}
 
-    public interface IAuthService
-    {
-        Task<AuthResult> Authenticate(string email, string password);
-        Task<AuthResult> Register(string firstName, string lastName, string email, string password);
-        string GenerateJwtToken(User user);
-    }
+public class AuthResult
+{
+    public bool Success { get; set; }
+    public string Token { get; set; }
+    public string RefreshToken { get; set; }
+    public UserDto User { get; set; }
+    public string Message { get; set; }
+    public IEnumerable<string> Errors { get; set; }
 }

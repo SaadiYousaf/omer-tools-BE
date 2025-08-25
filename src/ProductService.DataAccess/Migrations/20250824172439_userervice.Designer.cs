@@ -12,8 +12,8 @@ using ProductService.DataAccess.Data;
 namespace ProductService.DataAccess.Migrations
 {
     [DbContext(typeof(ProductDbContext))]
-    [Migration("20250822235759_brandmultiplecategories")]
-    partial class brandmultiplecategories
+    [Migration("20250824172439_userervice")]
+    partial class userervice
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

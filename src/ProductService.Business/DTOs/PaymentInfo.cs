@@ -1,4 +1,6 @@
 ﻿// ProductService/Business/DTOs/PaymentInfo.cs
+using System.ComponentModel.DataAnnotations;
+
 public class PaymentInfo
 {
     public string PaymentMethod { get; set; }
@@ -24,8 +26,15 @@ public class PaymentInfo
 
 public class CardData
 {
+    [Required]
     public string Number { get; set; }
+
+    [Required]
     public string Expiry { get; set; }
+
+    [Required]
     public string Cvc { get; set; }
+
+    [Required]
     public string Name { get; set; }
 }

@@ -16,6 +16,7 @@ namespace ProductService.API.Controllers
     [Authorize]
     public class OrderController : ControllerBase
     {
+
         private readonly IOrderService _orderService;
         private readonly IPaymentService _paymentService;
         private readonly IEmailService _emailService;
@@ -39,30 +40,45 @@ namespace ProductService.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] OrderCreationRequest request)
         {
+            _logger.LogInformation("Order creation request received: {@Request}", request);
+
             if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Model validation failed: {@ModelState}", ModelState);
                 return BadRequest(new { errors = ModelState });
+            }
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? request.UserEmail;
 
+            _logger.LogInformation("User ID from token: {UserId}, User email: {UserEmail}", userId, userEmail);
+
             if (string.IsNullOrWhiteSpace(userId))
+            {
+                _logger.LogWarning("User not authenticated");
                 return Unauthorized(new { message = "User not authenticated" });
+            }
 
             if (string.IsNullOrWhiteSpace(userEmail))
+            {
+                _logger.LogWarning("Email address is required");
                 return BadRequest(new { message = "Email address is required" });
+            }
 
             try
             {
                 // Check if userId is an email (old format) and resolve to GUID if needed
                 if (userId.Contains("@"))
                 {
-                    // userId is an email, we need to find the actual user ID
-                    var user = await _userRepository.GetUserByEmailAsync(userId);
+                    _logger.LogInformation("User ID is an email, resolving to GUID: {Email}", userId);
+                    var user = await _userRepository.GetByEmailAsync(userId);
                     if (user == null)
                     {
+                        _logger.LogWarning("User not found with email: {Email}", userId);
                         return Unauthorized(new { message = "User not found" });
                     }
                     userId = user.Id;
+                    _logger.LogInformation("Resolved user ID: {UserId}", userId);
                 }
 
                 // Map request items (DTO) to domain items
@@ -78,6 +94,7 @@ namespace ProductService.API.Controllers
 
                 // Calculate total
                 var total = items.Sum(i => i.UnitPrice * i.Quantity);
+                _logger.LogInformation("Order total calculated: {Total}", total);
 
                 // Process payment first (without order reference)
                 var paymentInfo = new PaymentInfo(
@@ -90,10 +107,12 @@ namespace ProductService.API.Controllers
                     paymentMethodId: request.PaymentMethodId
                 );
 
+                _logger.LogInformation("Processing payment...");
                 var paymentResult = await _paymentService.ProcessPaymentAsync(paymentInfo);
 
                 if (paymentResult.RequiresAction)
                 {
+                    _logger.LogInformation("Payment requires additional action");
                     return Ok(new OrderCreationResponse
                     {
                         Status = "requires_action",
@@ -104,6 +123,8 @@ namespace ProductService.API.Controllers
 
                 if (!paymentResult.IsSuccess)
                 {
+                    _logger.LogWarning("Payment failed: {ErrorCode} - {ErrorMessage}",
+                        paymentResult.ErrorCode, paymentResult.ErrorMessage);
                     return BadRequest(new OrderCreationResponse
                     {
                         Status = "payment_failed",
@@ -112,6 +133,8 @@ namespace ProductService.API.Controllers
                     });
                 }
 
+                _logger.LogInformation("Payment succeeded, creating order...");
+
                 // Payment succeeded, now create order
                 var order = await _orderService.CreateOrderAsync(
                     userId,
@@ -119,6 +142,8 @@ namespace ProductService.API.Controllers
                     paymentResult.TransactionId,
                     items
                 );
+
+                _logger.LogInformation("Order created: {OrderId}", order.Id);
 
                 // Update shipping address directly without tracking issues
                 await _orderService.UpdateOrderShippingAddressAsync(
@@ -151,10 +176,9 @@ namespace ProductService.API.Controllers
                 {
                     // Log email failure but don't fail the order
                     _logger.LogError(emailEx, "Failed to send order confirmation email for order {OrderId}", order.Id);
-
-                    // You could also save this to a database table for retry later
-                    // await _failedEmailService.QueueFailedEmail(order, userEmail, emailEx.Message);
                 }
+
+                _logger.LogInformation("Order creation completed successfully for order {OrderId}", order.Id);
 
                 return Ok(new OrderCreationResponse
                 {
@@ -180,17 +204,26 @@ namespace ProductService.API.Controllers
                 return StatusCode(500, new { Error = "Internal server error", Details = ex.Message });
             }
         }
-
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetOrdersByUser(string userId)
+        [HttpGet("user")]
+        public async Task<IActionResult> GetOrdersByUser()
         {
-            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (currentUserId != userId) return Forbid();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Resolve email to GUID if needed (similar to CreateOrder)
+            if (userId.Contains("@"))
+            {
+                var user = await _userRepository.GetByEmailAsync(userId);
+                if (user == null)
+                    return Unauthorized(new { message = "User not found" });
+                userId = user.Id;
+            }
 
             var orders = await _orderService.GetOrdersByUserAsync(userId);
+            if (orders == null || !orders.Any())
+                return NotFound(new { message = "Order not found" });
+
             return Ok(orders);
         }
-
         [HttpGet("{orderId}")]
         public async Task<IActionResult> GetOrderById(string orderId)
         {

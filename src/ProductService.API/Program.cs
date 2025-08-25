@@ -1,21 +1,22 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using ProductService.API.Controller;
+using ProductService.Business.DTOs;
 using ProductService.Business.Interfaces;
 using ProductService.Business.Mappings;
 using ProductService.Business.Services;
+
 using ProductService.DataAccess.Data;
 using ProductService.DataAccess.Repositories;
-using ProductService.Domain.Entities;
 using ProductService.Domain.Interfaces;
 using SendGrid;
 using src.ProductService.DataAccess;
 using Stripe;
 using System.Text;
 using System.Text.Json.Serialization;
+using IPasswordHasher = ProductService.Business.DTOs.IPasswordHasher;
+using PaymentMethodService = ProductService.Business.Services.PaymentMethodService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,14 +60,14 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IProductService, ProductService.Business.Services.ProductService>();
 
 // Payment services
-builder.Services.AddSingleton<PaymentIntentService>();
-builder.Services.AddSingleton<RefundService>();
-builder.Services.AddSingleton<PaymentMethodService>();
+builder.Services.AddScoped<PaymentIntentService>();
+builder.Services.AddScoped<RefundService>();
+builder.Services.AddScoped<PaymentMethodService>();
 
 // Payment Processor Selection
 if (builder.Environment.IsProduction())
 {
-    builder.Services.AddSingleton<IPaymentProcessor, StripePaymentProcessor>();
+   // builder.Services.AddSingleton<IPaymentProcessor, StripePaymentProcessor>();
 }
 else
 {
@@ -74,8 +75,12 @@ else
 }
 
 // Additional services
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
+//builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 // Add email services
@@ -136,10 +141,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+            ValidAudience = builder.Configuration["JwtSettings:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+                Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Secret"]))
         };
     });
 
@@ -147,6 +152,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IStockService, StockService>();
+builder.Services.AddScoped<IAddressRepository, AddressRepository>();
+builder.Services.AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
+builder.Services.AddScoped<IUserPreferencesRepository, UserPreferencesRepository>();
+
+// Register services
+builder.Services.AddScoped<IAddressService, AddressService>();
+//builder.Services.AddScoped<IPaymentMethodService, PaymentMethodService>();
+builder.Services.AddScoped<IUserPreferencesService, UserPreferencesService>();
+builder.Services.AddScoped<ProductService.Business.Interfaces.IUserService, ProductService.Business.Services.UserService>();
 
 var app = builder.Build();
 

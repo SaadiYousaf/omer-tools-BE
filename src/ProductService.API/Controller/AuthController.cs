@@ -1,67 +1,144 @@
 ﻿// API/Controllers/AuthController.cs
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using ProductService.Business.DTOs;
 using ProductService.Business.Interfaces;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace ProductService.API.Controllers
 {
     [ApiController]
-    [Route("api/auth")]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, ILogger<AuthController> logger)
         {
             _authService = authService;
-        }
-
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
-        {
-            var result = await _authService.Authenticate(request.Email, request.Password);
-
-            if (!result.Success)
-                return BadRequest(new { message = result.Message });
-
-            return Ok(new
-            {
-                token = result.Token,
-                user = new
-                {
-                    id = result.User.Id,
-                    email = result.User.Email,
-                    firstName = result.User.FirstName,
-                    lastName = result.User.LastName
-                }
-            });
+            _logger = logger;
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        [AllowAnonymous]
+        public async Task<IActionResult> Register([FromBody] UserRegistrationDto registrationDto)
         {
-            var result = await _authService.Register(
-                request.FirstName,
-                request.LastName,
-                request.Email,
-                request.Password
-            );
-
-            if (!result.Success)
-                return BadRequest(new { message = result.Message });
-
-            return Ok(new
+            try
             {
-                token = result.Token,
-                user = new
+                if (!ModelState.IsValid)
+                    return BadRequest(new AuthResponse
+                    {
+                        Success = false,
+                        Errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
+                    });
+
+                var authResult = await _authService.RegisterAsync(registrationDto);
+
+                if (!authResult.Success)
+                    return BadRequest(new AuthResponse
+                    {
+                        Success = false,
+                        Errors = authResult.Errors
+                    });
+
+                return Ok(new AuthResponse
                 {
-                    id = result.User.Id,
-                    email = result.User.Email,
-                    firstName = result.User.FirstName,
-                    lastName = result.User.LastName
+                    Success = true,
+                    Token = authResult.Token,
+                    RefreshToken = authResult.RefreshToken,
+                    User = authResult.User
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during user registration");
+                return StatusCode(500, new AuthResponse
+                {
+                    Success = false,
+                    Errors = new[] { "An error occurred during registration" }
+                });
+            }
+        }
+
+        [HttpPost("login")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequest)
+        {
+            try
+            {
+                _logger.LogInformation($"Login attempt for email: {loginRequest.Email}");
+
+                if (!ModelState.IsValid)
+                    return BadRequest(new AuthResponse
+                    {
+                        Success = false,
+                        Errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
+                    });
+
+                var authResult = await _authService.LoginAsync(loginRequest);
+
+                if (!authResult.Success)
+                {
+                    _logger.LogWarning($"Login failed for email: {loginRequest.Email}, Reason: {authResult.Message}");
+                    return BadRequest(new AuthResponse
+                    {
+                        Success = false,
+                        Errors = authResult.Errors
+                    });
                 }
+
+                _logger.LogInformation($"Login successful for email: {loginRequest.Email}");
+                return Ok(new AuthResponse
+                {
+                    Success = true,
+                    Token = authResult.Token,
+                    RefreshToken = authResult.RefreshToken,
+                    User = authResult.User
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during user login");
+                return StatusCode(500, new AuthResponse
+                {
+                    Success = false,
+                    Errors = new[] { "An error occurred during login" }
+                });
+            }
+        }
+        [HttpPost("refresh-token")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+        {
+            var authResult = await _authService.RefreshTokenAsync(request.Token, request.RefreshToken);
+
+            if (!authResult.Success)
+                return BadRequest(new AuthResponse { Errors = new[] { "Invalid tokens" } });
+
+            return Ok(new AuthResponse
+            {
+                Success = true,
+                Token = authResult.Token,
+                RefreshToken = authResult.RefreshToken,
+                User = authResult.User
             });
+        }
+
+        [HttpPost("revoke-token")]
+        [Authorize]
+        public async Task<IActionResult> RevokeToken()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _authService.RevokeTokenAsync(userId);
+
+            if (!result)
+                return BadRequest(new { message = "Unable to revoke token" });
+
+            return Ok(new { message = "Token revoked successfully" });
         }
     }
 

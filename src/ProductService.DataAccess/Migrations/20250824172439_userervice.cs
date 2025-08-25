@@ -6,11 +6,29 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ProductService.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class devdb : Migration
+    public partial class userervice : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "brands",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    LogoUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    WebsiteUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_brands", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "categories",
                 columns: table => new
@@ -51,28 +69,31 @@ namespace ProductService.DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "brands",
+                name: "BrandCategories",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    CategoryId = table.Column<string>(type: "nvarchar(50)", nullable: true),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    LogoUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    WebsiteUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    BrandId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    CategoryId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Id = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_brands", x => x.Id);
+                    table.PrimaryKey("PK_BrandCategories", x => new { x.BrandId, x.CategoryId });
                     table.ForeignKey(
-                        name: "FK_brands_categories_CategoryId",
+                        name: "FK_BrandCategories_brands_BrandId",
+                        column: x => x.BrandId,
+                        principalTable: "brands",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_BrandCategories_categories_CategoryId",
                         column: x => x.CategoryId,
                         principalTable: "categories",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -108,8 +129,7 @@ namespace ProductService.DataAccess.Migrations
                     OrderNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     UserId = table.Column<string>(type: "nvarchar(50)", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    ShippingAddress = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    BillingAddress = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    BillingAddress = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     TaxAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     ShippingCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
@@ -231,6 +251,31 @@ namespace ProductService.DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "shipping_addresses",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    FullName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    AddressLine1 = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    AddressLine2 = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    City = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    State = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    PostalCode = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Country = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    OrderId = table.Column<string>(type: "nvarchar(50)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_shipping_addresses", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_shipping_addresses_orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "orders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "product_images",
                 columns: table => new
                 {
@@ -307,8 +352,8 @@ namespace ProductService.DataAccess.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_brands_CategoryId",
-                table: "brands",
+                name: "IX_BrandCategories_CategoryId",
+                table: "BrandCategories",
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
@@ -352,6 +397,13 @@ namespace ProductService.DataAccess.Migrations
                 column: "PaymentId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_shipping_addresses_OrderId",
+                table: "shipping_addresses",
+                column: "OrderId",
+                unique: true,
+                filter: "[OrderId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_subcategories_CategoryId",
                 table: "subcategories",
                 column: "CategoryId");
@@ -360,6 +412,9 @@ namespace ProductService.DataAccess.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "BrandCategories");
+
             migrationBuilder.DropTable(
                 name: "order_items");
 
@@ -371,6 +426,9 @@ namespace ProductService.DataAccess.Migrations
 
             migrationBuilder.DropTable(
                 name: "refunds");
+
+            migrationBuilder.DropTable(
+                name: "shipping_addresses");
 
             migrationBuilder.DropTable(
                 name: "products");
