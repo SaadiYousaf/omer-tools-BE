@@ -241,6 +241,29 @@ namespace ProductService.Business.Services
                 return false;
             }
         }
+        public async Task<List<Order>> GetAllOrdersAsync(string status = null)
+        {
+            try
+            {
+                var query = _context.Orders
+                    .Include(o => o.Items)
+                    .Include(o => o.ShippingAddress)
+                    .Include(o => o.Payments)
+                    .AsQueryable();
+
+                if (!string.IsNullOrEmpty(status) && status.ToLower() != "all")
+                {
+                    query = query.Where(o => o.Status.ToLower() == status.ToLower());
+                }
+
+                return await query.OrderByDescending(o => o.CreatedAt).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving orders with status filter: {Status}", status);
+                throw;
+            }
+        }
         public async Task<IEnumerable<Order>> GetOrdersByUserAsync(string userId)
         {
             return await _context.Orders

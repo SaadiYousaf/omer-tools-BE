@@ -189,7 +189,8 @@ namespace ProductService.API.Controllers
                         DiscountPrice = p.DiscountPrice,
                         ImageUrl = p.Images.Where(i => i.IsPrimary).Select(i => i.ImageUrl).FirstOrDefault() ?? string.Empty,
                         IsFeatured = p.IsFeatured,
-                        StockStatus = p.StockQuantity > 0 ? "In Stock" : "Out of Stock"
+                        StockStatus = p.StockQuantity > 0 ? "In Stock" : "Out of Stock",
+                        StockQuantity = p.StockQuantity.ToString()
                     })
                     .ToListAsync();
 
@@ -314,6 +315,7 @@ namespace ProductService.API.Controllers
         public string ImageUrl { get; set; } = string.Empty;
         public bool IsFeatured { get; set; }
         public string StockStatus { get; set; } = string.Empty;
+        public string StockQuantity { get; set; } = string.Empty;
     }
 
     public class CategoryFilterDto

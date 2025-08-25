@@ -42,6 +42,16 @@ namespace ProductService.Business.Services
 
         public async Task<AuthResult> RegisterAsync(UserRegistrationDto registrationDto)
         {
+            if (!string.IsNullOrEmpty(registrationDto.Role) &&
+      !new[] { "User", "Admin", "SuperAdmin" }.Contains(registrationDto.Role))
+            {
+                return new AuthResult
+                {
+                    Success = false,
+                    Message = "Invalid role specified",
+                    Errors = new[] { "Role must be either 'User', 'Admin', or 'SuperAdmin'" }
+                };
+            }
             // Check if user already exists
             if (await _userRepository.UserExistsAsync(registrationDto.Email))
             {
@@ -55,6 +65,7 @@ namespace ProductService.Business.Services
 
             // Create user
             var user = _mapper.Map<User>(registrationDto);
+            user.Role = registrationDto.Role;
 
             // Hash password
             var passwordHash = _passwordHasher.HashPassword(registrationDto.Password);

@@ -106,6 +106,7 @@ namespace ProductService.Business.DTOs
         public string LastName { get; set; }
 
         public string PhoneNumber { get; set; }
+        public string Role { get; set; } = "User";
     }
 
     public class LoginRequestDto
@@ -156,6 +157,7 @@ namespace ProductService.Business.DTOs
         public string RefreshToken { get; set; }
         public UserDto User { get; set; }
         public IEnumerable<string> Errors { get; set; }
+        public string Message { get; set; }
     }
 
     public class RefreshTokenRequest

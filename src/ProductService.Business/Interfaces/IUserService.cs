@@ -9,6 +9,7 @@ namespace ProductService.Business.Interfaces
         Task<UserDto> GetUserProfileAsync(string userId);
         Task<bool> UpdateProfileAsync(string userId, UpdateProfileDto updateProfileDto);
         Task<bool> DeleteAccountAsync(string userId);
+        Task<bool> UserExistsAsync(string email);
 
         // Note: ChangePasswordAsync is typically handled by IAuthService
         // but if you want it in IUserService as well, you can add it:

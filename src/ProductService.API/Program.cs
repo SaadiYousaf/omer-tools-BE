@@ -13,6 +13,7 @@ using ProductService.Domain.Interfaces;
 using SendGrid;
 using src.ProductService.DataAccess;
 using Stripe;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 using IPasswordHasher = ProductService.Business.DTOs.IPasswordHasher;
@@ -143,10 +144,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
             ValidAudience = builder.Configuration["JwtSettings:Audience"],
+            RoleClaimType = ClaimTypes.Role,
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Secret"]))
         };
     });
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminAccess", policy =>
+         policy.RequireRole("Admin", "SuperAdmin"));
+});
 
 // Additional repositories and services
 builder.Services.AddScoped<IUserRepository, UserRepository>();

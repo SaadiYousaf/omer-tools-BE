@@ -224,6 +224,43 @@ namespace ProductService.API.Controllers
 
             return Ok(orders);
         }
+
+
+        [HttpGet("admin")]
+        [Authorize(Policy = "AdminAccess")]
+        public async Task<IActionResult> GetAllOrders([FromQuery] string status = null)
+        {
+            try
+            {
+                var orders = await _orderService.GetAllOrdersAsync(status);
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving orders");
+                return StatusCode(500, new { Error = "Internal server error" });
+            }
+        }
+
+        [HttpPatch("{orderId}/status")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> UpdateOrderStatus(string orderId, [FromBody] UpdateOrderStatusRequest request)
+        {
+            try
+            {
+                var result = await _orderService.UpdateOrderStatusAsync(orderId, request.Status);
+                if (!result)
+                    return NotFound(new { message = "Order not found" });
+
+                return Ok(new { message = "Order status updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating order status for {orderId}");
+                return StatusCode(500, new { Error = "Internal server error" });
+            }
+        }
+
         [HttpGet("{orderId}")]
         public async Task<IActionResult> GetOrderById(string orderId)
         {
@@ -332,5 +369,10 @@ namespace ProductService.API.Controllers
     {
         [Range(0.01, double.MaxValue)]
         public decimal Amount { get; set; }
+    }
+    public class UpdateOrderStatusRequest
+    {
+        [Required]
+        public string Status { get; set; }
     }
 }

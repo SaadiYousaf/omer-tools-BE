@@ -10,4 +10,6 @@ public interface IOrderService
     Task<Order> GetOrderByIdAsync(string orderId);
     Task<Order> CreateOrderAsync(Order order);
     Task UpdateOrderAsync(Order order);
+    Task<List<Order>> GetAllOrdersAsync(string status = null);
+
 }

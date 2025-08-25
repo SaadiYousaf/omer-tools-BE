@@ -26,7 +26,10 @@ namespace ProductService.Business.Services
             var user = await _userRepository.GetByIdAsync(userId);
             return _mapper.Map<UserDto>(user);
         }
-
+        public async Task<bool> UserExistsAsync(string email)
+        {
+            return await _userRepository.UserExistsAsync(email);
+        }
         public async Task<bool> UpdateProfileAsync(string userId, UpdateProfileDto updateProfileDto)
         {
             var user = await _userRepository.GetByIdAsync(userId);

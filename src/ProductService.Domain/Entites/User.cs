@@ -30,5 +30,6 @@ namespace UserService.Domain.Entities
         public ICollection<Address> Addresses { get; set; }
         public ICollection<PaymentMethod> PaymentMethods { get; set; }
         public UserPreferences Preferences { get; set; }
+        public string Role { get; set; } = "User";
     }
 }

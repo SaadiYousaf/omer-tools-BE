@@ -63,6 +63,13 @@ namespace ProductService.API.Controllers
                 });
             }
         }
+        [HttpPost("register-admin")]
+        [Authorize(Roles = "SuperAdmin")] 
+        public async Task<IActionResult> RegisterAdmin([FromBody] UserRegistrationDto registrationDto)
+        {
+            registrationDto.Role = "Admin"; 
+            return await Register(registrationDto);
+        }
 
         [HttpPost("login")]
         [AllowAnonymous]
