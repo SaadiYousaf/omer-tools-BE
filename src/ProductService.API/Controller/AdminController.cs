@@ -124,13 +124,15 @@ namespace ProductService.API.Controllers
         /// Update user role (super admin only)
         /// </summary>
         [HttpPut("users/{userId}/role")]
-        [Authorize(Roles = "SuperAdmin")] // Only super admins can change roles
+        [Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> UpdateUserRole(string userId, [FromBody] UpdateRoleRequest request)
         {
             try
             {
-                // In a real implementation, you would update the user's role
-                // For now, we'll return a placeholder response
+                var result = await _userService.UpdateUserRoleAsync(userId, request.Role);
+                if (!result)
+                    return NotFound(new { message = "User not found" });
+
                 _logger.LogInformation("User {UserId} role updated to {Role} by {AdminId}",
                     userId, request.Role, User.FindFirstValue(ClaimTypes.NameIdentifier));
 
@@ -143,6 +145,11 @@ namespace ProductService.API.Controllers
             }
         }
 
+        [HttpPut("users/{userId}/role/test")]
+        public IActionResult TestRoute(string userId)
+        {
+            return Ok(new { message = "Route works", userId });
+        }
         /// <summary>
         /// Delete user (super admin only)
         /// </summary>

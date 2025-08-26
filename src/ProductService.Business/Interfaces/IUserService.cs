@@ -7,6 +7,7 @@ namespace ProductService.Business.Interfaces
     public interface IUserService
     {
         Task<UserDto> GetUserProfileAsync(string userId);
+        Task<bool> UpdateUserRoleAsync(string userId, string newRole);
         Task<bool> UpdateProfileAsync(string userId, UpdateProfileDto updateProfileDto);
         Task<bool> DeleteAccountAsync(string userId);
         Task<bool> UserExistsAsync(string email);

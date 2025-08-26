@@ -165,7 +165,7 @@ builder.Services.AddScoped<IUserPreferencesRepository, UserPreferencesRepository
 
 // Register services
 builder.Services.AddScoped<IAddressService, AddressService>();
-//builder.Services.AddScoped<IPaymentMethodService, PaymentMethodService>();
+builder.Services.AddScoped<IPaymentMethodService, PaymentMethodService>();
 builder.Services.AddScoped<IUserPreferencesService, UserPreferencesService>();
 builder.Services.AddScoped<ProductService.Business.Interfaces.IUserService, ProductService.Business.Services.UserService>();
 

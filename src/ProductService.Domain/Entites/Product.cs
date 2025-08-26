@@ -24,6 +24,7 @@ namespace ProductService.Domain.Entities
         // Navigation properties
         public Subcategory Subcategory { get; set; }
         public Brand Brand { get; set; }
+        public string TagLine { get; set; }
         public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
         public ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
 

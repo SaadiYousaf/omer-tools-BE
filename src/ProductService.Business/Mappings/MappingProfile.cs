@@ -31,12 +31,13 @@ namespace ProductService.Business.Mappings
             // Product mapping with related collections
             CreateMap<Product, ProductDto>()
                 .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images))
+                .ForMember(dest => dest.TagLine, opt => opt.MapFrom(src => src.TagLine))
                 .ForMember(dest => dest.Variants, opt => opt.MapFrom(src => src.Variants))
                 .ReverseMap()
                 .ForMember(dest => dest.Brand, opt => opt.Ignore())
                 .ForMember(dest => dest.Subcategory, opt => opt.Ignore())
                 .ForMember(dest => dest.IsRedemption, opt => opt.MapFrom(src => src.IsRedemption))
-                .ReverseMap();
+                .ReverseMap();           
 
             CreateMap<ProductImage, ProductImageDto>().ReverseMap();
             CreateMap<ProductVariant, ProductVariantDto>().ReverseMap();

@@ -145,6 +145,7 @@ namespace ProductService.API.Controller
                     Price = productDto.Price,
                     IsRedemption = productDto.IsRedemption, // Add this line
                     DiscountPrice = productDto.DiscountPrice,
+                    TagLine = productDto.TagLine,
                     StockQuantity = productDto.StockQuantity,
                     Weight = productDto.Weight,
                     Dimensions = productDto.Dimensions,

@@ -57,7 +57,8 @@ namespace ProductService.Business.DTOs
         public string Description { get; set; } = string.Empty;
         public string Specifications { get; set; } = "{}";
         public decimal Price { get; set; }
-        public bool IsRedemption { get; set; } // Add this property
+        public string TagLine { get; set; } = string.Empty;
+        public bool IsRedemption { get; set; } 
         public decimal? DiscountPrice { get; set; }
         public int StockQuantity { get; set; }
         public decimal? Weight { get; set; }

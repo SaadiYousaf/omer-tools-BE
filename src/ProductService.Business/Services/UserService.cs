@@ -30,6 +30,19 @@ namespace ProductService.Business.Services
         {
             return await _userRepository.UserExistsAsync(email);
         }
+        public async Task<bool> UpdateUserRoleAsync(string userId, string newRole)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                return false;
+
+            user.Role = newRole;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _userRepository.UpdateAsync(user);
+            return true;
+        }
+
         public async Task<bool> UpdateProfileAsync(string userId, UpdateProfileDto updateProfileDto)
         {
             var user = await _userRepository.GetByIdAsync(userId);
