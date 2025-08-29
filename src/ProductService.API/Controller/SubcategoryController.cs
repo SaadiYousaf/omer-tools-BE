@@ -19,11 +19,13 @@ namespace ProductService.API.Controller
         private readonly IRepository<Category> _categoryRepository;
         private readonly IRepository<Product> _productRepository;
         private readonly ILogger<SubcategoriesController> _logger;
+        private readonly IRepository<SubcategoryImage> _subcategoryImageRepository;
 
         public SubcategoriesController(
             IRepository<Subcategory> subcategoryRepository,
             IRepository<Category> categoryRepository,
             IRepository<Product> productRepository,
+            IRepository<SubcategoryImage> subcategoryImageRepository,
             ILogger<SubcategoriesController> logger
         )
         {
@@ -31,6 +33,7 @@ namespace ProductService.API.Controller
             _categoryRepository = categoryRepository;
             _productRepository = productRepository;
             _logger = logger;
+            _subcategoryImageRepository = subcategoryImageRepository;
         }
 
         [HttpPost]
@@ -124,7 +127,7 @@ namespace ProductService.API.Controller
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllSubcategories([FromQuery] string categoryId = null)
+        public async Task<IActionResult> GetAllSubcategories([FromQuery] bool includeImages = false ,string categoryId = null)
         {
             try
             {
@@ -133,13 +136,13 @@ namespace ProductService.API.Controller
                 if (!string.IsNullOrEmpty(categoryId))
                 {
                     // Use repository filter for better performance
-                    subcategories = await _subcategoryRepository.GetAsync(
-                        s => s.CategoryId == categoryId
-                    );
+                    var allSubcategories = await _subcategoryRepository.GetAllAsync(s => s.Images);
+                    subcategories = allSubcategories.Where(s => s.CategoryId == categoryId);
+
                 }
                 else
                 {
-                    subcategories = await _subcategoryRepository.GetAllAsync();
+                    subcategories = await _subcategoryRepository.GetAllAsync("Images");
                 }
 
                 return Ok(subcategories.Select(s => new
@@ -150,6 +153,14 @@ namespace ProductService.API.Controller
                     s.Description,
                     s.ImageUrl,
                     s.DisplayOrder,
+                    Images = includeImages ? s.Images.Select(i => new
+                    {
+                        i.Id,
+                        i.ImageUrl,
+                        i.AltText,
+                        i.DisplayOrder,
+                        i.IsPrimary
+                    }) : null
                 }));
             }
             catch (Exception ex)
@@ -224,6 +235,150 @@ namespace ProductService.API.Controller
             {
                 _logger.LogError(ex, $"Error updating subcategory with ID {id}");
                 return StatusCode(500, "Internal server error");
+            }
+        }
+        [HttpPost("images")]
+        public async Task<IActionResult> UploadSubcategoryImage(
+    [FromForm] IFormFile file,
+    [FromForm] string subcategoryId,
+    [FromForm] string altText = "",
+    [FromForm] int displayOrder = 0,
+    [FromForm] bool isPrimary = false)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                    return BadRequest(new { success = false, message = "No file uploaded" });
+
+                if (string.IsNullOrEmpty(subcategoryId))
+                    return BadRequest(new { success = false, message = "Invalid subcategory ID" });
+
+                // Validate file type
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                if (string.IsNullOrEmpty(extension) || !allowedExtensions.Contains(extension))
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = $"Invalid file type. Allowed: {string.Join(", ", allowedExtensions)}"
+                    });
+
+                // Check if subcategory exists
+                var subcategory = await _subcategoryRepository.GetByIdAsync(subcategoryId);
+                if (subcategory == null)
+                    return NotFound(new { success = false, message = "Subcategory not found" });
+
+                // Ensure directories exist
+                var webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                Directory.CreateDirectory(webRootPath);
+
+                var uploadsDir = Path.Combine(webRootPath, "uploads", "subcategories");
+                Directory.CreateDirectory(uploadsDir);
+
+                // Generate unique filename
+                var fileName = $"{Guid.NewGuid()}{extension}";
+                var filePath = Path.Combine(uploadsDir, fileName);
+
+                // Save file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Create image record
+                var subcategoryImage = new SubcategoryImage
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    SubcategoryId = subcategoryId,
+                    ImageUrl = $"/uploads/subcategories/{fileName}",
+                    AltText = altText,
+                    DisplayOrder = displayOrder,
+                    IsPrimary = isPrimary,
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true
+                };
+
+                await _subcategoryImageRepository.AddAsync(subcategoryImage);
+                await _subcategoryImageRepository.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    image = new
+                    {
+                        subcategoryImage.Id,
+                        subcategoryImage.ImageUrl,
+                        subcategoryImage.AltText,
+                        subcategoryImage.DisplayOrder,
+                        subcategoryImage.IsPrimary
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Subcategory image upload failed");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("{id}/images")]
+        public async Task<IActionResult> GetSubcategoryImages(string id)
+        {
+            try
+            {
+                var images = await _subcategoryImageRepository.GetAsync(ci => ci.SubcategoryId == id && ci.IsActive);
+                return Ok(images.Select(img => new
+                {
+                    img.Id,
+                    img.ImageUrl,
+                    img.AltText,
+                    img.DisplayOrder,
+                    img.IsPrimary
+                }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting images for subcategory ID {id}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpDelete("images/{id}")]
+        public async Task<IActionResult> DeleteSubcategoryImage(string id)
+        {
+            try
+            {
+                var image = await _subcategoryImageRepository.GetByIdAsync(id);
+                if (image == null)
+                    return NotFound(new { success = false, message = "Image not found" });
+
+                // Delete physical file
+                if (!string.IsNullOrEmpty(image.ImageUrl))
+                {
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", image.ImageUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                }
+
+                await _subcategoryImageRepository.DeleteAsync(image);
+                await _subcategoryImageRepository.SaveChangesAsync();
+
+                return Ok(new { success = true, message = "Image deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error deleting image with ID {id}");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
         }
 

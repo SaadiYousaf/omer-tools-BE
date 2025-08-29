@@ -15,6 +15,8 @@ namespace ProductService.Domain.Entites
         // Navigation properties for many-to-many relationship
         public ICollection<BrandCategory> BrandCategories { get; set; } = new List<BrandCategory>();
         public ICollection<Product> Products { get; set; } = new List<Product>();
+        public ICollection<BrandImage> Images { get; set; } = new List<BrandImage>();
+      //  public virtual ICollection<BrandImage> Images { get; set; }
     }
 
     public class BrandCategory:BaseEntity

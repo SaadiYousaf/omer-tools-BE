@@ -14,7 +14,7 @@ namespace ProductService.Domain.Entities
         // Navigation properties
         public ICollection<BrandCategory> BrandCategories { get; set; } = new List<BrandCategory>();
         public ICollection<Subcategory> Subcategories { get; set; } = new List<Subcategory>();
-
+        public ICollection<CategoryImage> Images { get; set; } = new List<CategoryImage>();
         // This property can be kept for convenience if needed (but it's not mapped to the database)
         [NotMapped]
         public ICollection<Brand> Brands

@@ -1,13 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using ProductService.Business.DTOs;
 using ProductService.Domain.Entites;
 using ProductService.Domain.Entities;
 using ProductService.Domain.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ProductService.API.Controller
 {
@@ -19,6 +14,7 @@ namespace ProductService.API.Controller
         private readonly IRepository<Category> _categoryRepository;
         private readonly IRepository<Product> _productRepository;
         private readonly IRepository<BrandCategory> _brandCategoryRepository;
+        private readonly IRepository<BrandImage> _brandImageRepository;
         private readonly ILogger<BrandsController> _logger;
 
         public BrandsController(
@@ -26,6 +22,7 @@ namespace ProductService.API.Controller
             IRepository<Category> categoryRepository,
             IRepository<Product> productRepository,
             IRepository<BrandCategory> brandCategoryRepository,
+            IRepository<BrandImage> brandImageRepository,
             ILogger<BrandsController> logger
         )
         {
@@ -33,6 +30,7 @@ namespace ProductService.API.Controller
             _categoryRepository = categoryRepository;
             _productRepository = productRepository;
             _brandCategoryRepository = brandCategoryRepository;
+            _brandImageRepository = brandImageRepository;
             _logger = logger;
         }
 
@@ -61,7 +59,6 @@ namespace ProductService.API.Controller
                     Id = Guid.NewGuid().ToString(),
                     Name = brandDto.Name?.Trim(),
                     Description = brandDto.Description?.Trim(),
-                    LogoUrl = brandDto.LogoUrl?.Trim(),
                     WebsiteUrl = brandDto.WebsiteUrl?.Trim(),
                     CreatedAt = DateTime.UtcNow,
                     IsActive = true,
@@ -92,7 +89,6 @@ namespace ProductService.API.Controller
                         CategoryIds = brandDto.CategoryIds,
                         brand.Name,
                         brand.Description,
-                        brand.LogoUrl,
                         brand.WebsiteUrl,
                     }
                 );
@@ -110,31 +106,41 @@ namespace ProductService.API.Controller
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetBrandById(string id)
+        public async Task<IActionResult> GetBrandById(string id, bool includeImages = false)
         {
             try
             {
-                var brand = await _brandRepository.GetByIdAsync(id, "BrandCategories.Category");
+                var brand = includeImages
+                    ? await _brandRepository.GetByIdAsync(id, "BrandCategories.Category", "Images")
+                    : await _brandRepository.GetByIdAsync(id, "BrandCategories.Category");
+
                 if (brand == null)
                 {
                     _logger.LogWarning($"Brand with ID {id} not found");
                     return NotFound();
                 }
 
-                return Ok(
-                    new
+                var result = new
+                {
+                    brand.Id,
+                    CategoryIds = brand.BrandCategories.Select(bc => bc.CategoryId).ToList(),
+                    CategoryNames = brand.BrandCategories.Select(bc => bc.Category.Name).ToList(),
+                    brand.Name,
+                    brand.Description,
+                    brand.WebsiteUrl,
+                    brand.CreatedAt,
+                    brand.UpdatedAt,
+                    Images = includeImages ? brand.Images.Select(i => new
                     {
-                        brand.Id,
-                        CategoryIds = brand.BrandCategories.Select(bc => bc.CategoryId).ToList(),
-                        CategoryNames = brand.BrandCategories.Select(bc => bc.Category.Name).ToList(),
-                        brand.Name,
-                        brand.Description,
-                        brand.LogoUrl,
-                        brand.WebsiteUrl,
-                        brand.CreatedAt,
-                        brand.UpdatedAt,
-                    }
-                );
+                        i.Id,
+                        i.ImageUrl,
+                        i.AltText,
+                        i.DisplayOrder,
+                        i.IsPrimary
+                    }) : null
+                };
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -144,7 +150,7 @@ namespace ProductService.API.Controller
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllBrands([FromQuery] List<string> categoryIds = null)
+        public async Task<IActionResult> GetAllBrands([FromQuery] List<string> categoryIds = null, bool includeImages = false)
         {
             try
             {
@@ -167,11 +173,19 @@ namespace ProductService.API.Controller
                         .Where(g => g.Count() == categoryIds.Count)
                         .Select(g => g.Key);
 
-                    brands = await _brandRepository.GetAsync(b => brandIds.Contains(b.Id), "BrandCategories.Category");
+                    brands = await _brandRepository.GetAsync(
+    b => brandIds.Contains(b.Id),
+    includeImages ? new[] { "BrandCategories.Category", "Images" }
+                  : new[] { "BrandCategories.Category" });
+
                 }
                 else
                 {
-                    brands = await _brandRepository.GetAllAsync("BrandCategories.Category");
+                    
+
+                    brands = await _brandRepository.GetAllAsync(
+                        includeImages ? new[] { "BrandCategories.Category", "Images" }
+                  : new[] { "BrandCategories.Category" });
                 }
 
                 return Ok(brands.Select(b => new
@@ -181,8 +195,15 @@ namespace ProductService.API.Controller
                     CategoryNames = b.BrandCategories.Select(bc => bc.Category.Name).ToList(),
                     b.Name,
                     b.Description,
-                    b.LogoUrl,
                     b.WebsiteUrl,
+                    Images = includeImages ? b.Images.Select(i => new
+                    {
+                        i.Id,
+                        i.ImageUrl,
+                        i.AltText,
+                        i.DisplayOrder,
+                        i.IsPrimary
+                    }) : null
                 }));
             }
             catch (Exception ex)
@@ -214,7 +235,6 @@ namespace ProductService.API.Controller
                 // Update brand properties
                 existingBrand.Name = brandDto.Name?.Trim();
                 existingBrand.Description = brandDto.Description?.Trim();
-                existingBrand.LogoUrl = brandDto.LogoUrl?.Trim();
                 existingBrand.WebsiteUrl = brandDto.WebsiteUrl?.Trim();
                 existingBrand.UpdatedAt = DateTime.UtcNow;
 
@@ -260,7 +280,6 @@ namespace ProductService.API.Controller
                         CategoryIds = brandDto.CategoryIds,
                         existingBrand.Name,
                         existingBrand.Description,
-                        existingBrand.LogoUrl,
                         existingBrand.WebsiteUrl
                     }
                 });
@@ -269,6 +288,151 @@ namespace ProductService.API.Controller
             {
                 _logger.LogError(ex, $"Error updating brand with ID {id}");
                 return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpPost("images")]
+        public async Task<IActionResult> UploadBrandImage(
+            [FromForm] IFormFile file,
+            [FromForm] string brandId,
+            [FromForm] string altText = "",
+            [FromForm] int displayOrder = 0,
+            [FromForm] bool isPrimary = false)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                    return BadRequest(new { success = false, message = "No file uploaded" });
+
+                if (string.IsNullOrEmpty(brandId))
+                    return BadRequest(new { success = false, message = "Invalid brand ID" });
+
+                // Validate file type
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                if (string.IsNullOrEmpty(extension) || !allowedExtensions.Contains(extension))
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = $"Invalid file type. Allowed: {string.Join(", ", allowedExtensions)}"
+                    });
+
+                // Check if brand exists
+                var brand = await _brandRepository.GetByIdAsync(brandId);
+                if (brand == null)
+                    return NotFound(new { success = false, message = "Brand not found" });
+
+                // Ensure directories exist
+                var webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                Directory.CreateDirectory(webRootPath);
+
+                var uploadsDir = Path.Combine(webRootPath, "uploads", "brands");
+                Directory.CreateDirectory(uploadsDir);
+
+                // Generate unique filename
+                var fileName = $"{Guid.NewGuid()}{extension}";
+                var filePath = Path.Combine(uploadsDir, fileName);
+
+                // Save file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Create image record
+                var brandImage = new BrandImage
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    BrandId = brandId,
+                    ImageUrl = $"/uploads/brands/{fileName}",
+                    AltText = altText,
+                    DisplayOrder = displayOrder,
+                    IsPrimary = isPrimary,
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true
+                };
+
+                await _brandImageRepository.AddAsync(brandImage);
+                await _brandImageRepository.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    image = new
+                    {
+                        brandImage.Id,
+                        brandImage.ImageUrl,
+                        brandImage.AltText,
+                        brandImage.DisplayOrder,
+                        brandImage.IsPrimary
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Brand image upload failed");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("{id}/images")]
+        public async Task<IActionResult> GetBrandImages(string id)
+        {
+            try
+            {
+                var images = await _brandImageRepository.GetAsync(ci => ci.BrandId == id && ci.IsActive);
+                return Ok(images.Select(img => new
+                {
+                    img.Id,
+                    img.ImageUrl,
+                    img.AltText,
+                    img.DisplayOrder,
+                    img.IsPrimary
+                }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting images for brand ID {id}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpDelete("images/{id}")]
+        public async Task<IActionResult> DeleteBrandImage(string id)
+        {
+            try
+            {
+                var image = await _brandImageRepository.GetByIdAsync(id);
+                if (image == null)
+                    return NotFound(new { success = false, message = "Image not found" });
+
+                // Delete physical file
+                if (!string.IsNullOrEmpty(image.ImageUrl))
+                {
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", image.ImageUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                }
+
+                await _brandImageRepository.DeleteAsync(image);
+                await _brandImageRepository.SaveChangesAsync();
+
+                return Ok(new { success = true, message = "Image deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error deleting image with ID {id}");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
         }
 
@@ -287,7 +451,23 @@ namespace ProductService.API.Controller
                     return BadRequest("Cannot delete brand with associated products");
                 }
 
-                // Delete brand category relationships first
+                // Delete brand images first
+                var brandImages = await _brandImageRepository.GetAsync(bi => bi.BrandId == id);
+                foreach (var image in brandImages)
+                {
+                    // Delete physical file
+                    if (!string.IsNullOrEmpty(image.ImageUrl))
+                    {
+                        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", image.ImageUrl.TrimStart('/'));
+                        if (System.IO.File.Exists(filePath))
+                        {
+                            System.IO.File.Delete(filePath);
+                        }
+                    }
+                    await _brandImageRepository.DeleteAsync(image);
+                }
+
+                // Delete brand category relationships
                 var brandCategories = await _brandCategoryRepository.GetAsync(bc => bc.BrandId == id);
                 foreach (var brandCategory in brandCategories)
                 {
@@ -297,6 +477,7 @@ namespace ProductService.API.Controller
                 await _brandRepository.DeleteAsync(brand);
                 await _brandRepository.SaveChangesAsync();
                 await _brandCategoryRepository.SaveChangesAsync();
+                await _brandImageRepository.SaveChangesAsync();
 
                 return NoContent();
             }

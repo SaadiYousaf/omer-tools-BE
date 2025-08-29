@@ -24,8 +24,14 @@ namespace src.ProductService.DataAccess
             ProductImageRepository = new Repository<ProductImage>(_context);
             ProductVariantRepository = new Repository<ProductVariant>(_context);
             UserRepository = new UserRepository(_context);
+            CategoryImageRepository = new Repository<CategoryImage>(_context);
+            SubcategoryImageRepository = new Repository<SubcategoryImage>(_context);
+            BrandImageRepository = new Repository<BrandImage>(_context);
         }
+        public IRepository<SubcategoryImage> SubcategoryImageRepository { get; }
+        public IRepository<BrandImage> BrandImageRepository { get; }
 
+        public IRepository<CategoryImage> CategoryImageRepository { get; }
         public IRepository<Brand> BrandRepository { get; }
         public IRepository<Category> CategoryRepository { get; }
         public IRepository<Subcategory> SubcategoryRepository { get; }

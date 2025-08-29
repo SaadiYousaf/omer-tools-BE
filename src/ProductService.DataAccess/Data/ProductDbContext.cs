@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ProductService.Domain.Entites;
 using ProductService.Domain.Entities;
 using System;
@@ -27,6 +27,10 @@ namespace ProductService.DataAccess.Data
         public DbSet<Address> Addresses { get; set; }
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
         public DbSet<UserPreferences> UserPreferences { get; set; }
+        public DbSet<CategoryImage> CategoryImages { get; set; }
+        public DbSet<SubcategoryImage> SubcategoryImages { get; set; }
+        public DbSet<BrandImage> BrandImages { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -45,9 +49,10 @@ namespace ProductService.DataAccess.Data
             modelBuilder.Entity<Refund>().ToTable("refunds");
             modelBuilder.Entity<User>().ToTable("users");
             modelBuilder.Entity<ShippingAddress>().ToTable("shipping_addresses");
+            modelBuilder.Entity<BrandImage>().ToTable("BrandImages");
 
-            // Configure User entity
-            modelBuilder.Entity<User>(entity =>
+        // Configure User entity
+        modelBuilder.Entity<User>(entity =>
             {
                 entity.HasKey(u => u.Id);
                 entity.Property(u => u.Id).HasMaxLength(50);
@@ -107,7 +112,34 @@ namespace ProductService.DataAccess.Data
                 entity.Property(b => b.IsActive)
                     .HasDefaultValue(true);
             });
+            modelBuilder.Entity<BrandImage>(entity =>
+            {
+                entity.ToTable("brandimages");   // ✅ make sure DB table is named
+                entity.HasKey(bi => bi.Id);
+                entity.Property(bi => bi.Id).ValueGeneratedOnAdd();
 
+                entity.HasOne(bi => bi.Brand)
+                    .WithMany(b => b.Images)
+                    .HasForeignKey(bi => bi.BrandId);
+            }); modelBuilder.Entity<CategoryImage>(entity =>
+            {
+                entity.ToTable("categoryimages");
+                entity.HasKey(ci => ci.Id);
+                entity.Property(ci => ci.Id).ValueGeneratedOnAdd();
+                entity.HasOne(ci => ci.Category)
+                    .WithMany(c => c.Images)
+                    .HasForeignKey(ci => ci.CategoryId);
+            });
+
+            modelBuilder.Entity<SubcategoryImage>(entity =>
+            {
+                entity.ToTable("subcategoryimages");
+                entity.HasKey(ci => ci.Id);
+                entity.Property(ci => ci.Id).ValueGeneratedOnAdd();
+                entity.HasOne(ci => ci.Subcategory)
+                    .WithMany(c => c.Images)
+                    .HasForeignKey(ci => ci.SubcategoryId);
+            });
             // Configure the BrandCategory join entity
             modelBuilder.Entity<BrandCategory>(entity =>
             {

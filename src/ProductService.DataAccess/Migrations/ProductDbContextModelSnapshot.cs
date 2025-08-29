@@ -355,6 +355,43 @@ namespace ProductService.DataAccess.Migrations
                     b.ToTable("UserPreferences");
                 });
 
+            modelBuilder.Entity("ProductService.Domain.Entities.BrandImage", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AltText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BrandId")
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BrandId");
+
+                    b.ToTable("brandimages", (string)null);
+                });
+
             modelBuilder.Entity("ProductService.Domain.Entities.Category", b =>
                 {
                     b.Property<string>("Id")
@@ -393,6 +430,43 @@ namespace ProductService.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("categories", (string)null);
+                });
+
+            modelBuilder.Entity("ProductService.Domain.Entities.CategoryImage", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AltText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CategoryId")
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("categoryimages", (string)null);
                 });
 
             modelBuilder.Entity("ProductService.Domain.Entities.Order", b =>
@@ -753,6 +827,43 @@ namespace ProductService.DataAccess.Migrations
                     b.ToTable("subcategories", (string)null);
                 });
 
+            modelBuilder.Entity("ProductService.Domain.Entities.SubcategoryImage", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AltText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SubcategoryId")
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubcategoryId");
+
+                    b.ToTable("subcategoryimages", (string)null);
+                });
+
             modelBuilder.Entity("ShippingAddress", b =>
                 {
                     b.Property<string>("Id")
@@ -934,6 +1045,24 @@ namespace ProductService.DataAccess.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ProductService.Domain.Entities.BrandImage", b =>
+                {
+                    b.HasOne("ProductService.Domain.Entites.Brand", "Brand")
+                        .WithMany("Images")
+                        .HasForeignKey("BrandId");
+
+                    b.Navigation("Brand");
+                });
+
+            modelBuilder.Entity("ProductService.Domain.Entities.CategoryImage", b =>
+                {
+                    b.HasOne("ProductService.Domain.Entities.Category", "Category")
+                        .WithMany("Images")
+                        .HasForeignKey("CategoryId");
+
+                    b.Navigation("Category");
+                });
+
             modelBuilder.Entity("ProductService.Domain.Entities.Order", b =>
                 {
                     b.HasOne("UserService.Domain.Entities.User", "User")
@@ -1001,6 +1130,15 @@ namespace ProductService.DataAccess.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("ProductService.Domain.Entities.SubcategoryImage", b =>
+                {
+                    b.HasOne("ProductService.Domain.Entities.Subcategory", "Subcategory")
+                        .WithMany("Images")
+                        .HasForeignKey("SubcategoryId");
+
+                    b.Navigation("Subcategory");
+                });
+
             modelBuilder.Entity("ShippingAddress", b =>
                 {
                     b.HasOne("ProductService.Domain.Entities.Order", "Order")
@@ -1015,12 +1153,16 @@ namespace ProductService.DataAccess.Migrations
                 {
                     b.Navigation("BrandCategories");
 
+                    b.Navigation("Images");
+
                     b.Navigation("Products");
                 });
 
             modelBuilder.Entity("ProductService.Domain.Entities.Category", b =>
                 {
                     b.Navigation("BrandCategories");
+
+                    b.Navigation("Images");
 
                     b.Navigation("Subcategories");
                 });
@@ -1048,6 +1190,8 @@ namespace ProductService.DataAccess.Migrations
 
             modelBuilder.Entity("ProductService.Domain.Entities.Subcategory", b =>
                 {
+                    b.Navigation("Images");
+
                     b.Navigation("Products");
                 });
 

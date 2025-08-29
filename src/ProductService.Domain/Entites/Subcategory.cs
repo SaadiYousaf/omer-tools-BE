@@ -10,5 +10,6 @@ namespace ProductService.Domain.Entities
 
         public Category Category { get; set; }
         public ICollection<Product> Products { get; set; } = new List<Product>();
+        public ICollection<SubcategoryImage> Images { get; set; } = new List<SubcategoryImage>();
     }
 }
