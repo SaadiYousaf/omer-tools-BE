@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ProductService.Business.Interfaces
 {
-    public interface IPaymentMethodService
+    public interface IUserPaymentMethodService
     {
         Task<PaymentMethodDto> GetPaymentMethodByIdAsync(string paymentMethodId);
         Task<IEnumerable<PaymentMethodDto>> GetUserPaymentMethodsAsync(string userId);

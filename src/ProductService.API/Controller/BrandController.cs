@@ -181,7 +181,7 @@ namespace ProductService.API.Controller
                 }
                 else
                 {
-                    
+
 
                     brands = await _brandRepository.GetAllAsync(
                         includeImages ? new[] { "BrandCategories.Category", "Images" }

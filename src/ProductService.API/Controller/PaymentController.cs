@@ -2,6 +2,7 @@
 using ProductService.API.RequestHelper;
 using ProductService.Business.DTOs;
 using ProductService.Business.Interfaces;
+using ProductService.Business.Services;
 using ProductService.Domain.Entities;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -14,17 +15,20 @@ namespace ProductService.API.Controller
     public class PaymentController : ControllerBase
     {
         private readonly IPaymentProcessor _paymentProcessor;
+        private readonly IPaymentService _paymentService;
         private readonly IOrderService _orderService;
         private readonly IEmailService _emailService;
         private readonly ILogger<PaymentController> _logger;
 
         public PaymentController(
             IPaymentProcessor paymentProcessor,
+            IPaymentService paymentService,
             IOrderService orderService,
             IEmailService emailService,
             ILogger<PaymentController> logger)
         {
             _paymentProcessor = paymentProcessor;
+            _paymentService = paymentService;
             _orderService = orderService;
             _emailService = emailService;
             _logger = logger;
@@ -44,18 +48,28 @@ namespace ProductService.API.Controller
                 }
 
                 // Process payment
-                // In the ProcessPayment method:
                 var paymentResult = await _paymentProcessor.ProcessPaymentAsync(
                     new PaymentInfo(
                         paymentMethod: request.PaymentMethod,
+                        paymentMethodId: request.PaymentMethodId,
                         cardData: request.CardData,
                         amount: request.Amount,
                         currency: request.Currency,
-                        customerEmail: request.UserEmail,   // Added
-                        orderId: Guid.NewGuid().ToString(), // Generate temporary ID
-                        paymentMethodId: request.PaymentMethod // Use method as ID
+                        customerEmail: request.UserEmail,
+                        orderId: Guid.NewGuid().ToString()
                     )
                 );
+
+                if (paymentResult.RequiresAction)
+                {
+                    return Ok(new PaymentResponse
+                    {
+                        Success = true,
+                        RequiresAction = true,
+                        ClientSecret = paymentResult.ClientSecret,
+                        Message = "Payment requires additional action"
+                    });
+                }
 
                 if (!paymentResult.IsSuccess)
                 {
@@ -75,6 +89,9 @@ namespace ProductService.API.Controller
                     paymentResult.TransactionId,
                     request.OrderItems
                 );
+
+                // Update payment record with order ID
+                await _paymentService.UpdatePaymentOrderIdAsync(paymentResult.TransactionId, order.Id);
 
                 // Send confirmation email (fire-and-forget)
                 if (!string.IsNullOrEmpty(request.UserEmail))
@@ -109,7 +126,7 @@ namespace ProductService.API.Controller
         {
             var result = new CustomValidationResult();
 
-            if (request.PaymentMethod == "credit")
+            if (request.PaymentMethod == "credit" && string.IsNullOrEmpty(request.PaymentMethodId))
             {
                 if (request.CardData == null)
                     result.AddError("Card data is required for credit card payments");
@@ -135,6 +152,7 @@ namespace ProductService.API.Controller
     public class PaymentRequest
     {
         [Required] public string PaymentMethod { get; set; } = string.Empty;
+        public string PaymentMethodId { get; set; } = string.Empty; // For saved payment methods
         public CardData? CardData { get; set; }
         [Required] public string UserId { get; set; } = string.Empty;
         public string SessionId { get; set; } = string.Empty;
@@ -144,16 +162,15 @@ namespace ProductService.API.Controller
         [EmailAddress] public string UserEmail { get; set; } = string.Empty;
     }
 
- 
-
     public class PaymentResponse
     {
         public bool Success { get; set; }
+        public bool RequiresAction { get; set; }
         public string OrderId { get; set; } = string.Empty;
         public string OrderNumber { get; set; } = string.Empty;
         public string TransactionId { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
         public string ErrorCode { get; set; } = string.Empty;
+        public string ClientSecret { get; set; } = string.Empty; // For 3D Secure
     }
-
 }

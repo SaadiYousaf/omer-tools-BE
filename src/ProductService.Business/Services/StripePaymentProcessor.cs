@@ -1,190 +1,234 @@
-﻿//using Microsoft.Extensions.Logging;
-//using ProductService.Business.DTOs;
-//using ProductService.Business.Interfaces;
-//using Stripe;
-//using System;
-//using System.Threading.Tasks;
+﻿using Microsoft.Extensions.Logging;
+using ProductService.Business.DTOs;
+using ProductService.Business.Interfaces;
+using Stripe;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-//namespace ProductService.Business.Services
-//{
-//    public class StripePaymentProcessor : IPaymentProcessor
-//    {
-//        private readonly ILogger<StripePaymentProcessor> _logger;
-//        private readonly PaymentIntentService _paymentIntentService;
-//        private readonly IPaymentMethodService _paymentMethodService;
-//        private readonly RefundService _refundService; // Added this field
+namespace ProductService.Business.Services
+{
+    public class StripePaymentProcessor : IPaymentProcessor
+    {
+        private readonly ILogger<StripePaymentProcessor> _logger;
+        private readonly PaymentIntentService _paymentIntentService;
+        private readonly Stripe.PaymentMethodService _stripePaymentMethodService;
+        private readonly RefundService _refundService;
 
-//        public StripePaymentProcessor(
-//            ILogger<StripePaymentProcessor> logger,
-//            PaymentIntentService paymentIntentService,
-//            IPaymentMethodService paymentMethodService,
-//            RefundService refundService) // Added this parameter
-//        {
-//            _logger = logger;
-//            _paymentIntentService = paymentIntentService;
-//            _paymentMethodService = paymentMethodService;
-//            _refundService = refundService; // Initialize the field
-//        }
+        public StripePaymentProcessor(
+            ILogger<StripePaymentProcessor> logger,
+            PaymentIntentService paymentIntentService,
+            Stripe.PaymentMethodService stripePaymentMethodService,
+            RefundService refundService)
+        {
+            _logger = logger;
+            _paymentIntentService = paymentIntentService;
+            _stripePaymentMethodService = stripePaymentMethodService;
+            _refundService = refundService;
+        }
 
-//        public async Task<PaymentResult> ProcessPaymentAsync(PaymentInfo paymentInfo)
-//        {
-//            try
-//            {
-//                _logger.LogInformation("Processing Stripe payment for order: {OrderId}, amount: {Amount}",
-//                    paymentInfo.OrderId, paymentInfo.Amount);
+        public async Task<PaymentResult> ProcessPaymentAsync(PaymentInfo paymentInfo)
+        {
+            try
+            {
+                _logger.LogInformation("Processing Stripe payment for order: {OrderId}, amount: {Amount}",
+                    paymentInfo.OrderId, paymentInfo.Amount);
 
-//                // Create payment method first if card data is provided
-//                string paymentMethodId = paymentInfo.PaymentMethodId;
+                // Create payment method first if card data is provided
+                string paymentMethodId = paymentInfo.PaymentMethodId;
 
-//                if (paymentInfo.CardData != null && string.IsNullOrEmpty(paymentMethodId))
-//                {
-//                    var paymentMethodOptions = new PaymentMethodCreateOptions
-//                    {
-//                        Type = "card",
-//                        Card = new PaymentMethodCardOptions
-//                        {
-//                            Number = paymentInfo.CardData.Number,
-//                            ExpMonth = long.Parse(paymentInfo.CardData.Expiry.Split('/')[0]),
-//                            ExpYear = long.Parse(paymentInfo.CardData.Expiry.Split('/')[1]),
-//                            Cvc = paymentInfo.CardData.Cvc
-//                        },
-//                        BillingDetails = new PaymentMethodBillingDetailsOptions
-//                        {
-//                            Name = paymentInfo.CardData.Name,
-//                            Email = paymentInfo.CustomerEmail
-//                        }
-//                    };
+                if (paymentInfo.CardData != null && string.IsNullOrEmpty(paymentMethodId))
+                {
+                    var paymentMethodOptions = new PaymentMethodCreateOptions
+                    {
+                        Type = "card",
+                        Card = new PaymentMethodCardOptions
+                        {
+                            Number = paymentInfo.CardData.Number,
+                            ExpMonth = long.Parse(paymentInfo.CardData.Expiry.Split('/')[0]),
+                            ExpYear = long.Parse(paymentInfo.CardData.Expiry.Split('/')[1]),
+                            Cvc = paymentInfo.CardData.Cvc
+                        },
+                        BillingDetails = new PaymentMethodBillingDetailsOptions
+                        {
+                            Name = paymentInfo.CardData.Name,
+                            Email = paymentInfo.CustomerEmail
+                        }
+                    };
 
-//                    var createdPaymentMethod = await _paymentMethodService.CreateAsync(paymentMethodOptions); // Renamed variable
-//                    paymentMethodId = createdPaymentMethod.Id;
-//                }
+                    var createdPaymentMethod = await _stripePaymentMethodService.CreateAsync(paymentMethodOptions);
+                    paymentMethodId = createdPaymentMethod.Id;
 
-//                // Create payment intent
-//                var options = new PaymentIntentCreateOptions
-//                {
-//                    Amount = (long)(paymentInfo.Amount * 100),
-//                    Currency = paymentInfo.Currency?.ToLower() ?? "usd",
-//                    PaymentMethod = paymentMethodId,
-//                    Confirm = true,
-//                    ConfirmationMethod = "automatic",
-//                    Description = $"Payment for order #{paymentInfo.OrderId}",
-//                    Metadata = new System.Collections.Generic.Dictionary<string, string>
-//                    {
-//                        { "order_id", paymentInfo.OrderId },
-//                        { "customer_email", paymentInfo.CustomerEmail }
-//                    },
-//                    ReceiptEmail = paymentInfo.CustomerEmail,
-//                    ReturnUrl = "https://your-app.com/payment/return"
-//                };
+                    // Add test for specific declining card numbers
+                    if (IsTestCardThatShouldFail(paymentInfo.CardData.Number))
+                    {
+                        _logger.LogWarning("Test card that should fail was used: {CardNumber}",
+                            MaskCardNumber(paymentInfo.CardData.Number));
+                        return PaymentResult.CreateFailed(
+                            "card_declined",
+                            "Your card was declined. Please use a different payment method."
+                        );
+                    }
+                }
 
-//                _logger.LogInformation("Creating payment intent with options: {@Options}", options);
+                // Create payment intent
+                var options = new PaymentIntentCreateOptions
+                {
+                    Amount = (long)(paymentInfo.Amount * 100),
+                    Currency = paymentInfo.Currency?.ToLower() ?? "usd",
+                    PaymentMethod = paymentMethodId,
+                    Confirm = true,
+                    ConfirmationMethod = "automatic",
+                    Description = $"Payment for order #{paymentInfo.OrderId}",
+                    Metadata = new Dictionary<string, string>
+                    {
+                        { "order_id", paymentInfo.OrderId },
+                        { "customer_email", paymentInfo.CustomerEmail }
+                    },
+                    ReceiptEmail = paymentInfo.CustomerEmail,
+                    ReturnUrl = "https://your-app.com/payment/return"
+                };
 
-//                var paymentIntent = await _paymentIntentService.CreateAsync(options);
-//                PaymentMethod retrievedPaymentMethod = null; // Renamed variable
+                _logger.LogInformation("Creating payment intent with options: {@Options}", options);
 
-//                if (!string.IsNullOrEmpty(paymentMethodId))
-//                {
-//            //        retrievedPaymentMethod = await _paymentMethodService.GetAsync(paymentMethodId);
-//                }
+                var paymentIntent = await _paymentIntentService.CreateAsync(options);
+                PaymentMethod retrievedPaymentMethod = null;
 
-//                _logger.LogInformation("Payment intent created with status: {Status}", paymentIntent.Status);
+                if (!string.IsNullOrEmpty(paymentMethodId))
+                {
+                    retrievedPaymentMethod = await _stripePaymentMethodService.GetAsync(paymentMethodId);
+                }
 
-//                if (paymentIntent.Status == "succeeded")
-//                {
-//                    _logger.LogInformation("Payment succeeded: {PaymentId}", paymentIntent.Id);
-//                    return PaymentResult.CreateSuccess(
-//                        transactionId: paymentIntent.Id,
-//                        last4: retrievedPaymentMethod?.Card?.Last4, // Updated variable name
-//                        brand: retrievedPaymentMethod?.Card?.Brand, // Updated variable name
-//                        expMonth: (int?)retrievedPaymentMethod?.Card?.ExpMonth, // Updated variable name
-//                        expYear: (int?)retrievedPaymentMethod?.Card?.ExpYear // Updated variable name
-//                    );
-//                }
+                _logger.LogInformation("Payment intent created with status: {Status}", paymentIntent.Status);
 
-//                if (paymentIntent.Status == "requires_action")
-//                {
-//                    _logger.LogInformation("Payment requires additional action: 3D Secure");
-//                    return PaymentResult.CreateRequiresAction(paymentIntent.ClientSecret);
-//                }
+                // Handle different payment intent statuses
+                switch (paymentIntent.Status)
+                {
+                    case "succeeded":
+                        _logger.LogInformation("Payment succeeded: {PaymentId}", paymentIntent.Id);
+                        return PaymentResult.CreateSuccess(
+                            transactionId: paymentIntent.Id,
+                            last4: retrievedPaymentMethod?.Card?.Last4,
+                            brand: retrievedPaymentMethod?.Card?.Brand,
+                            expMonth: (int?)retrievedPaymentMethod?.Card?.ExpMonth,
+                            expYear: (int?)retrievedPaymentMethod?.Card?.ExpYear
+                        );
 
-//                if (paymentIntent.Status == "requires_payment_method")
-//                {
-//                    _logger.LogWarning("Payment requires payment method: {ErrorMessage}",
-//                        paymentIntent.LastPaymentError?.Message);
-//                    return PaymentResult.CreateFailed(
-//                        "payment_method_required",
-//                        paymentIntent.LastPaymentError?.Message ?? "Payment method is required"
-//                    );
-//                }
+                    case "requires_action":
+                        _logger.LogInformation("Payment requires additional action: 3D Secure");
+                        return PaymentResult.CreateRequiresAction(paymentIntent.ClientSecret);
 
-//                _logger.LogWarning("Payment failed: {Status}, {Error}",
-//                    paymentIntent.Status, paymentIntent.LastPaymentError?.Message);
+                    case "requires_payment_method":
+                        _logger.LogWarning("Payment requires payment method: {ErrorMessage}",
+                            paymentIntent.LastPaymentError?.Message);
+                        return PaymentResult.CreateFailed(
+                            "payment_method_required",
+                            paymentIntent.LastPaymentError?.Message ?? "Payment method is required"
+                        );
 
-//                return PaymentResult.CreateFailed(
-//                    paymentIntent.LastPaymentError?.Code ?? "payment_failed",
-//                    paymentIntent.LastPaymentError?.Message ?? "Payment processing failed"
-//                );
-//            }
-//            catch (StripeException ex)
-//            {
-//                _logger.LogError(ex, "Stripe payment processing error: {Message}", ex.Message);
-//                _logger.LogError("Stripe error details: {StripeError}", ex.StripeError?.ToString());
+                    case "canceled":
+                        _logger.LogWarning("Payment was canceled: {ErrorMessage}",
+                            paymentIntent.LastPaymentError?.Message);
+                        return PaymentResult.CreateFailed(
+                            "payment_canceled",
+                            paymentIntent.LastPaymentError?.Message ?? "Payment was canceled"
+                        );
 
-//                return ex.StripeError?.Type switch
-//                {
-//                    "card_error" => PaymentResult.CreateFailed(
-//                        ex.StripeError.Code,
-//                        ex.StripeError.Message
-//                    ),
-//                    _ => PaymentResult.CreateFailed(
-//                        "stripe_error",
-//                        ex.Message
-//                    )
-//                };
-//            }
-//            catch (Exception ex)
-//            {
-//                _logger.LogError(ex, "Unexpected error during payment processing");
-//                return PaymentResult.CreateFailed(
-//                    "system_error",
-//                    "Payment processing failed"
-//                );
-//            }
-//        }
+                    default:
+                        _logger.LogWarning("Payment failed with status: {Status}, {Error}",
+                            paymentIntent.Status, paymentIntent.LastPaymentError?.Message);
+                        return PaymentResult.CreateFailed(
+                            paymentIntent.LastPaymentError?.Code ?? "payment_failed",
+                            paymentIntent.LastPaymentError?.Message ?? $"Payment processing failed with status: {paymentIntent.Status}"
+                        );
+                }
+            }
+            catch (StripeException ex)
+            {
+                _logger.LogError(ex, "Stripe payment processing error: {Message}", ex.Message);
+                _logger.LogError("Stripe error details: {StripeError}", ex.StripeError?.ToString());
 
-//        public async Task<PaymentResult> RefundPaymentAsync(string transactionId, decimal amount)
-//        {
-//            try
-//            {
-//                _logger.LogInformation("Processing Stripe refund for: {TransactionId}, amount: {Amount}",
-//                    transactionId, amount);
+                return ex.StripeError?.Type switch
+                {
+                    "card_error" => PaymentResult.CreateFailed(
+                        ex.StripeError.Code,
+                        ex.StripeError.Message
+                    ),
+                    _ => PaymentResult.CreateFailed(
+                        "stripe_error",
+                        ex.Message
+                    )
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error during payment processing");
+                return PaymentResult.CreateFailed(
+                    "system_error",
+                    "Payment processing failed"
+                );
+            }
+        }
 
-//                var options = new RefundCreateOptions
-//                {
-//                    PaymentIntent = transactionId,
-//                    Amount = (long)(amount * 100),
-//                    Reason = "requested_by_customer"
-//                };
+        private bool IsTestCardThatShouldFail(string cardNumber)
+        {
+            // Remove any spaces or non-digit characters
+            var cleanCardNumber = cardNumber?.Replace(" ", "").Replace("-", "") ?? "";
 
-//                var refund = await _refundService.CreateAsync(options); // Using the field now
+            // Test cards that should be declined
+            var failingTestCards = new List<string>
+            {
+                "4000000000000002", // Generic decline
+                "4000000000009995", // Insufficient funds
+                "4100000000000019", // Processing error
+                "4000000000000127", // Incorrect CVC
+                "4000000000000069", // Expired card
+                "4000000000000119"  // Incorrect number
+            };
 
-//                if (refund.Status == "succeeded")
-//                {
-//                    _logger.LogInformation("Refund succeeded: {RefundId}", refund.Id);
-//                    return PaymentResult.CreateSuccess(refund.Id);
-//                }
+            return failingTestCards.Contains(cleanCardNumber);
+        }
 
-//                _logger.LogWarning("Refund failed: {Status}", refund.Status);
-//                return PaymentResult.CreateFailed("refund_failed", $"Refund status: {refund.Status}");
-//            }
-//            catch (StripeException ex)
-//            {
-//                _logger.LogError(ex, "Stripe refund error: {Message}", ex.Message);
-//                return PaymentResult.CreateFailed(
-//                    ex.StripeError?.Code ?? "stripe_error",
-//                    ex.StripeError?.Message ?? ex.Message
-//                );
-//            }
-//        }
-//    }
-//}
+        private string MaskCardNumber(string cardNumber)
+        {
+            if (string.IsNullOrEmpty(cardNumber) || cardNumber.Length < 4)
+                return "****";
+
+            return $"**** **** **** {cardNumber.Substring(cardNumber.Length - 4)}";
+        }
+        public async Task<PaymentResult> RefundPaymentAsync(string transactionId, decimal amount)
+        {
+            try
+            {
+                _logger.LogInformation("Processing Stripe refund for: {TransactionId}, amount: {Amount}",
+                    transactionId, amount);
+
+                var options = new RefundCreateOptions
+                {
+                    PaymentIntent = transactionId,
+                    Amount = (long)(amount * 100),
+                    Reason = "requested_by_customer"
+                };
+
+                var refund = await _refundService.CreateAsync(options); // Using the field now
+
+                if (refund.Status == "succeeded")
+                {
+                    _logger.LogInformation("Refund succeeded: {RefundId}", refund.Id);
+                    return PaymentResult.CreateSuccess(refund.Id);
+                }
+
+                _logger.LogWarning("Refund failed: {Status}", refund.Status);
+                return PaymentResult.CreateFailed("refund_failed", $"Refund status: {refund.Status}");
+            }
+            catch (StripeException ex)
+            {
+                _logger.LogError(ex, "Stripe refund error: {Message}", ex.Message);
+                return PaymentResult.CreateFailed(
+                    ex.StripeError?.Code ?? "stripe_error",
+                    ex.StripeError?.Message ?? ex.Message
+                );
+            }
+        }
+    }
+}

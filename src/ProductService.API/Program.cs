@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -6,7 +7,6 @@ using ProductService.Business.DTOs;
 using ProductService.Business.Interfaces;
 using ProductService.Business.Mappings;
 using ProductService.Business.Services;
-
 using ProductService.DataAccess.Data;
 using ProductService.DataAccess.Repositories;
 using ProductService.Domain.Interfaces;
@@ -16,8 +16,7 @@ using Stripe;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
-using IPasswordHasher = ProductService.Business.DTOs.IPasswordHasher;
-using PaymentMethodService = ProductService.Business.Services.PaymentMethodService;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,36 +59,40 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IProductService, ProductService.Business.Services.ProductService>();
 
-// Payment services
-builder.Services.AddScoped<PaymentIntentService>();
-builder.Services.AddScoped<RefundService>();
-builder.Services.AddScoped<PaymentMethodService>();
+// Stripe Configuration
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+
+// Register Stripe services
+builder.Services.AddSingleton<Stripe.PaymentIntentService>();
+builder.Services.AddSingleton<Stripe.PaymentMethodService>();
+builder.Services.AddSingleton<Stripe.RefundService>();
 
 // Payment Processor Selection
-if (builder.Environment.IsProduction())
+if (builder.Environment.IsProduction() || builder.Environment.IsDevelopment())
 {
-   // builder.Services.AddSingleton<IPaymentProcessor, StripePaymentProcessor>();
+    builder.Services.AddScoped<IPaymentProcessor, StripePaymentProcessor>();
 }
 else
 {
-    builder.Services.AddSingleton<IPaymentProcessor, MockPaymentProcessor>();
+    builder.Services.AddScoped<IPaymentProcessor, MockPaymentProcessor>();
 }
 
+// Payment service
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<ProductService.Business.DTOs.IPasswordHasher, PasswordHasher>();
+
 // Additional services
-builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+//builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
-//builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
-builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+
 // Add email services
 builder.Services.AddScoped<IEmailService, EmailService>();
-//builder.Services.AddScoped<IEmailService, SendGridEmailService>();
 builder.Services.AddSingleton<ISendGridClient>(sp =>
     new SendGridClient(builder.Configuration["SendGrid:ApiKey"]));
-//builder.Services.AddScoped<ITemplateRenderer, RazorTemplateRenderer>();
 
 // Configure AutoMapper
 builder.Services.AddAutoMapper(cfg =>
@@ -165,7 +168,7 @@ builder.Services.AddScoped<IUserPreferencesRepository, UserPreferencesRepository
 
 // Register services
 builder.Services.AddScoped<IAddressService, AddressService>();
-builder.Services.AddScoped<IPaymentMethodService, PaymentMethodService>();
+builder.Services.AddScoped<IUserPaymentMethodService, UserPaymentMethodService>(); // Renamed interface
 builder.Services.AddScoped<IUserPreferencesService, UserPreferencesService>();
 builder.Services.AddScoped<ProductService.Business.Interfaces.IUserService, ProductService.Business.Services.UserService>();
 
@@ -175,7 +178,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-   // app.UseSwaggerUI();
+  //  app.UseSwaggerUI();
     app.UseDeveloperExceptionPage();
 }
 

@@ -99,12 +99,12 @@ namespace ProductService.API.Controllers
                 // Process payment first (without order reference)
                 var paymentInfo = new PaymentInfo(
                     paymentMethod: request.PaymentMethod,
+                    paymentMethodId: request.PaymentMethodId,
                     cardData: request.CardData,
                     amount: total,
                     currency: "USD",
                     customerEmail: userEmail,
-                    orderId: null, // Don't pass an order ID yet
-                    paymentMethodId: request.PaymentMethodId
+                    orderId: Guid.NewGuid().ToString() // Generate a temporary ID for payment processing
                 );
 
                 _logger.LogInformation("Processing payment...");

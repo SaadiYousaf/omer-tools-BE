@@ -14,9 +14,9 @@ namespace ProductService.API.Controllers
     [Authorize]
     public class PaymentMethodsController : ControllerBase
     {
-        private readonly IPaymentMethodService _paymentMethodService;
+        private readonly IUserPaymentMethodService _paymentMethodService;
 
-        public PaymentMethodsController(IPaymentMethodService paymentMethodService)
+        public PaymentMethodsController(IUserPaymentMethodService paymentMethodService)
         {
             _paymentMethodService = paymentMethodService;
         }

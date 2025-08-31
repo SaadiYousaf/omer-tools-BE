@@ -121,7 +121,8 @@ namespace ProductService.DataAccess.Data
                 entity.HasOne(bi => bi.Brand)
                     .WithMany(b => b.Images)
                     .HasForeignKey(bi => bi.BrandId);
-            }); modelBuilder.Entity<CategoryImage>(entity =>
+            });
+            modelBuilder.Entity<CategoryImage>(entity =>
             {
                 entity.ToTable("categoryimages");
                 entity.HasKey(ci => ci.Id);

@@ -11,12 +11,12 @@ using System.Threading.Tasks;
 
 namespace ProductService.Business.Services
 {
-    public class PaymentMethodService : IPaymentMethodService
+    public class UserPaymentMethodService : IUserPaymentMethodService
     {
         private readonly IPaymentMethodRepository _paymentMethodRepository;
         private readonly IMapper _mapper;
 
-        public PaymentMethodService(IPaymentMethodRepository paymentMethodRepository, IMapper mapper)
+        public UserPaymentMethodService(IPaymentMethodRepository paymentMethodRepository, IMapper mapper)
         {
             _paymentMethodRepository = paymentMethodRepository;
             _mapper = mapper;
