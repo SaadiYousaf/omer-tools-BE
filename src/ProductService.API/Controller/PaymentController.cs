@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
 using ProductService.API.RequestHelper;
 using ProductService.Business.DTOs;
 using ProductService.Business.Interfaces;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace ProductService.API.Controller
 {
+    [EnableCors("AllowAll")]
     [ApiController]
     [Route("api/[controller]")]
     public class PaymentController : ControllerBase
@@ -87,7 +89,8 @@ namespace ProductService.API.Controller
                     request.UserId,
                     request.SessionId,
                     paymentResult.TransactionId,
-                    request.OrderItems
+                    request.OrderItems,
+                    0
                 );
 
                 // Update payment record with order ID

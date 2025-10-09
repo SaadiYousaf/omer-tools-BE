@@ -1,5 +1,6 @@
 ﻿// API/Controllers/AccountController.cs
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ProductService.Business.DTOs;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace ProductService.API.Controllers
 {
+    [EnableCors("AllowAll")]
     [ApiController]
     [Route("api/[controller]")]
     [Authorize(Roles = "Admin,SuperAdmin")] // Only admins can access these endpoints

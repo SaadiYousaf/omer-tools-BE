@@ -147,6 +147,85 @@ namespace ProductService.API.Controllers
 
             return Ok(new { message = "Token revoked successfully" });
         }
+
+        [HttpGet("verify")]
+        [Authorize] // This ensures the token is valid
+        public IActionResult VerifyToken()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userEmail = User.FindFirstValue(ClaimTypes.Email);
+                var userRole = User.FindFirstValue(ClaimTypes.Role);
+
+                _logger.LogInformation("Token verified for user: {UserId}, Email: {Email}", userId, userEmail);
+
+                return Ok(new
+                {
+                    Success = true,
+                    UserId = userId,
+                    Email = userEmail,
+                    Role = userRole,
+                    Message = "Token is valid"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Token verification failed");
+                return Unauthorized(new
+                {
+                    Success = false,
+                    Message = "Token is invalid or expired"
+                });
+            }
+        }
+
+        [HttpPost("google-signin")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GoogleSignIn([FromBody] GoogleAuthRequestDto googleAuth)
+        {
+            try
+            {
+                _logger.LogInformation($"Google sign-in attempt");
+
+                if (!ModelState.IsValid)
+                    return BadRequest(new AuthResponse
+                    {
+                        Success = false,
+                        Errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
+                    });
+
+                var authResult = await _authService.GoogleSignInAsync(googleAuth);
+
+                if (!authResult.Success)
+                {
+                    _logger.LogWarning($"Google sign-in failed: {authResult.Message}");
+                    return BadRequest(new AuthResponse
+                    {
+                        Success = false,
+                        Errors = authResult.Errors
+                    });
+                }
+
+                _logger.LogInformation($"Google sign-in successful for email: {authResult.User.Email}");
+                return Ok(new AuthResponse
+                {
+                    Success = true,
+                    Token = authResult.Token,
+                    RefreshToken = authResult.RefreshToken,
+                    User = authResult.User
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during Google sign-in");
+                return StatusCode(500, new AuthResponse
+                {
+                    Success = false,
+                    Errors = new[] { "An error occurred during Google sign-in" }
+                });
+            }
+        }
     }
 
     public class LoginRequest

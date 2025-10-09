@@ -1,5 +1,6 @@
 ﻿// ProductService.API/Controllers/UsersController.cs
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using ProductService.Business.DTOs;
 using ProductService.Business.Interfaces;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace ProductService.API.Controllers
 {
+    [EnableCors("AllowAll")]
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]

@@ -27,16 +27,12 @@ namespace ProductService.Business.DTOs
 
     public class CardData
     {
-        [Required]
         public string Number { get; set; }
 
-        [Required]
         public string Expiry { get; set; }
 
-        [Required]
         public string Cvc { get; set; }
 
-        [Required]
         public string Name { get; set; }
     }
 }

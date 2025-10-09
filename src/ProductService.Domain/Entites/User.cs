@@ -24,7 +24,9 @@ namespace UserService.Domain.Entities
         public DateTime? LastLogin { get; set; }
         public string RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiry { get; set; }
-
+        public string AuthProvider { get; set; } = "Local"; // "Local", "Google"
+        public string GoogleId { get; set; }
+        public bool IsEmailVerified { get; set; } = false;
         // Navigation properties
         public ICollection<Order> Orders { get; set; } = new List<Order>();
         public ICollection<Address> Addresses { get; set; }

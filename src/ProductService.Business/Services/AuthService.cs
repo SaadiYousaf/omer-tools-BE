@@ -1,6 +1,9 @@
 ﻿// ProductService.Business/Services/AuthService.cs
 using AutoMapper;
+using Google.Apis.Auth;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.SqlServer.Server;
 using ProductService.Business.DTOs;
 using ProductService.Business.Interfaces;
 using ProductService.Domain.Entites;
@@ -23,6 +26,8 @@ namespace ProductService.Business.Services
         private readonly IEmailService _emailService;
         private readonly IMapper _mapper;
         private readonly ILogger<AuthService> _logger;
+        private readonly IConfiguration _configuration;
+
 
         public AuthService(
             IUserRepository userRepository,
@@ -30,7 +35,8 @@ namespace ProductService.Business.Services
             IJwtTokenGenerator jwtTokenGenerator,
             IEmailService emailService,
             IMapper mapper,
-            ILogger<AuthService> logger)
+            ILogger<AuthService> logger,
+            IConfiguration configuration)
         {
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
@@ -38,6 +44,7 @@ namespace ProductService.Business.Services
             _emailService = emailService;
             _mapper = mapper;
             _logger = logger;
+            _configuration = configuration;
         }
 
         public async Task<AuthResult> RegisterAsync(UserRegistrationDto registrationDto)
@@ -112,6 +119,15 @@ namespace ProductService.Business.Services
                         Success = false,
                         Message = "Invalid credentials",
                         Errors = new[] { "Invalid credentials" }
+                    };
+                }
+                if (user.AuthProvider == "Google" && !string.IsNullOrEmpty(user.GoogleId))
+                {
+                    return new AuthResult
+                    {
+                        Success = false,
+                        Message = "This account uses Google authentication. Please sign in with Google.",
+                        Errors = new[] { "Use Google Sign-In for this account" }
                     };
                 }
 
@@ -261,6 +277,142 @@ namespace ProductService.Business.Services
 
             await _userRepository.UpdateAsync(user);
             return true;
+        }
+
+        public async Task<AuthResult> GoogleSignInAsync(GoogleAuthRequestDto googleAuth)
+        {
+            try
+            {
+                // Validate Google token and get user info
+                var googleUser = await ValidateGoogleTokenAsync(googleAuth.IdToken);
+
+                if (googleUser == null || string.IsNullOrEmpty(googleUser.Email))
+                {
+                    return new AuthResult
+                    {
+                        Success = false,
+                        Message = "Invalid Google token",
+                        Errors = new[] { "Invalid Google token" }
+                    };
+                }
+
+                // Check if user exists
+                var user = await _userRepository.GetByEmailAsync(googleUser.Email);
+
+                if (user == null)
+                {
+                    // Create new user from Google info
+                    user = new User
+                    {
+                        Email = googleUser.Email,
+                        FirstName = googleUser.FirstName ?? googleUser.Name?.Split(' ').FirstOrDefault(),
+                        LastName = googleUser.LastName ?? googleUser.Name?.Split(' ').LastOrDefault(),
+                        Role = "User", // Default role
+                        IsEmailVerified = googleUser.VerifiedEmail,
+                        AuthProvider = "Google",
+                        GoogleId = googleUser.Id,
+                        CreatedAt = DateTime.UtcNow,
+                        LastLogin = DateTime.UtcNow
+                    };
+                    // Set dummy password fields for Google users
+                    var dummyPassword = _passwordHasher.HashPassword(Guid.NewGuid().ToString());
+                    user.PasswordHash = dummyPassword.Hash;
+                    user.PasswordSalt = dummyPassword.Salt;
+
+
+                    // Set default preferences
+                    user.Preferences = new UserPreferences
+                    {
+                        EmailNotifications = true,
+                        SmsNotifications = false,
+                        Language = "en",
+                        Currency = "AUD",
+                        Theme = "System"
+                    };
+
+                    await _userRepository.CreateAsync(user);
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(user.PasswordHash) || string.IsNullOrEmpty(user.PasswordSalt))
+                    {
+                        var dummyPassword = _passwordHasher.HashPassword(Guid.NewGuid().ToString());
+                        user.PasswordHash = dummyPassword.Hash;
+                        user.PasswordSalt = dummyPassword.Salt;
+                        _logger.LogInformation($"Set dummy password for existing user {user.Email}");
+                    }
+
+                    // Scenario 1: Convert local user to also allow Google login
+                    if (string.IsNullOrEmpty(user.GoogleId))
+                    {
+                        user.GoogleId = googleUser.Id;
+                        user.AuthProvider = "Google"; // Or keep as "Local" if you want both
+                        _logger.LogInformation($"Added Google authentication to existing user {user.Email}");
+                    }
+
+                    // Update last login for all scenarios
+                    user.LastLogin = DateTime.UtcNow;
+                    await _userRepository.UpdateAsync(user);
+                }
+
+                // Generate tokens
+                var token = _jwtTokenGenerator.GenerateToken(user);
+                var refreshToken = _jwtTokenGenerator.GenerateRefreshToken();
+
+                await _userRepository.AddRefreshTokenAsync(user.Id, refreshToken, DateTime.UtcNow.AddDays(7));
+
+                return new AuthResult
+                {
+                    Success = true,
+                    Token = token,
+                    RefreshToken = refreshToken,
+                    User = _mapper.Map<UserDto>(user)
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during Google sign-in");
+                return new AuthResult
+                {
+                    Success = false,
+                    Message = "An error occurred during Google sign-in",
+                    Errors = new[] { "An error occurred during Google sign-in" }
+                };
+            }
+        }
+
+        private async Task<GoogleUserInfoDto> ValidateGoogleTokenAsync(string idToken)
+        {
+            try
+            {
+                var settings = new GoogleJsonWebSignature.ValidationSettings()
+                {
+                    Audience = new[] { _configuration["Google:ClientId"] }
+                };
+
+                var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
+
+                return new GoogleUserInfoDto
+                {
+                    Id = payload.Subject,
+                    Email = payload.Email,
+                    Name = payload.Name,
+                    FirstName = payload.GivenName,
+                    LastName = payload.FamilyName,
+                    Picture = payload.Picture,
+                    VerifiedEmail = payload.EmailVerified
+                };
+            }
+            catch (InvalidJwtException ex)
+            {
+                _logger.LogWarning(ex, "Invalid Google token");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error validating Google token");
+                return null;
+            }
         }
     }
 }

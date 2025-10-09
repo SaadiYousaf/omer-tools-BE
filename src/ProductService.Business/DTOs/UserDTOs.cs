@@ -108,7 +108,24 @@ namespace ProductService.Business.DTOs
         public string PhoneNumber { get; set; }
         public string Role { get; set; } = "User";
     }
+    // GoogleAuthRequestDto.cs
+    public class GoogleAuthRequestDto
+    {
+        [Required]
+        public string IdToken { get; set; }
+    }
 
+    // GoogleUserInfoDto.cs
+    public class GoogleUserInfoDto
+    {
+        public string Id { get; set; }
+        public string Email { get; set; }
+        public string Name { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Picture { get; set; }
+        public bool VerifiedEmail { get; set; }
+    }
     public class LoginRequestDto
     {
         [Required]

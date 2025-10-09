@@ -75,7 +75,7 @@ namespace ProductService.Business.Services
         }
 
         // The rest of your OrderService methods remain the same...
-        public async Task<Order> CreateOrderAsync(string userId, string sessionId, string transactionId, List<OrderItem> items)
+        public async Task<Order> CreateOrderAsync(string userId, string sessionId, string transactionId, List<OrderItem> items, decimal shippingCost)
         {
             var executionStrategy = _context.Database.CreateExecutionStrategy();
 
@@ -115,7 +115,8 @@ namespace ProductService.Business.Services
                         TransactionId = transactionId,
                         OrderNumber = GenerateOrderNumber(),
                         Items = items,
-                        TotalAmount = items.Sum(i => i.UnitPrice * i.Quantity),
+                        TotalAmount = items.Sum(i => i.UnitPrice * i.Quantity) + shippingCost,
+                        ShippingCost = shippingCost, // ✅ Save shipping cost
                         Status = "Pending",
                         PaymentStatus = "Pending",
                         CreatedAt = DateTime.UtcNow

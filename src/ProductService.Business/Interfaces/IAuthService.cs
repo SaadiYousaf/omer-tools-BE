@@ -9,6 +9,8 @@ public interface IAuthService
     Task<bool> ChangePasswordAsync(string userId, ChangePasswordDto changePasswordDto);
     Task<bool> RequestPasswordResetAsync(string email);
     Task<bool> ResetPasswordAsync(ResetPasswordDto resetPasswordDto);
+
+    Task<AuthResult> GoogleSignInAsync(GoogleAuthRequestDto googleAuth);
 }
 
 public class AuthResult

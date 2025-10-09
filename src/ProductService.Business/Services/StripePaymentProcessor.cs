@@ -37,56 +37,64 @@ namespace ProductService.Business.Services
                 // Create payment method first if card data is provided
                 string paymentMethodId = paymentInfo.PaymentMethodId;
 
-                if (paymentInfo.CardData != null && string.IsNullOrEmpty(paymentMethodId))
+                //if (paymentInfo.CardData != null && string.IsNullOrEmpty(paymentMethodId))
+                //{
+                //    var paymentMethodOptions = new PaymentMethodCreateOptions
+                //    {
+                //        Type = "card",
+                //        Card = new PaymentMethodCardOptions
+                //        {
+                //            Number = paymentInfo.CardData.Number,
+                //            ExpMonth = long.Parse(paymentInfo.CardData.Expiry.Split('/')[0]),
+                //            ExpYear = long.Parse(paymentInfo.CardData.Expiry.Split('/')[1]),
+                //            Cvc = paymentInfo.CardData.Cvc
+                //        },
+                //        BillingDetails = new PaymentMethodBillingDetailsOptions
+                //        {
+                //            Name = paymentInfo.CardData.Name,
+                //            Email = paymentInfo.CustomerEmail
+                //        }
+                //    };
+
+                //    var createdPaymentMethod = await _stripePaymentMethodService.CreateAsync(paymentMethodOptions);
+                //    paymentMethodId = createdPaymentMethod.Id;
+
+                //    // Add test for specific declining card numbers
+                //    if (IsTestCardThatShouldFail(paymentInfo.CardData.Number))
+                //    {
+                //        _logger.LogWarning("Test card that should fail was used: {CardNumber}",
+                //            MaskCardNumber(paymentInfo.CardData.Number));
+                //        return PaymentResult.CreateFailed(
+                //            "card_declined",
+                //            "Your card was declined. Please use a different payment method."
+                //        );
+                //    }
+                //}
+                // Validate that we have a payment method ID
+                if (string.IsNullOrEmpty(paymentMethodId))
                 {
-                    var paymentMethodOptions = new PaymentMethodCreateOptions
-                    {
-                        Type = "card",
-                        Card = new PaymentMethodCardOptions
-                        {
-                            Number = paymentInfo.CardData.Number,
-                            ExpMonth = long.Parse(paymentInfo.CardData.Expiry.Split('/')[0]),
-                            ExpYear = long.Parse(paymentInfo.CardData.Expiry.Split('/')[1]),
-                            Cvc = paymentInfo.CardData.Cvc
-                        },
-                        BillingDetails = new PaymentMethodBillingDetailsOptions
-                        {
-                            Name = paymentInfo.CardData.Name,
-                            Email = paymentInfo.CustomerEmail
-                        }
-                    };
-
-                    var createdPaymentMethod = await _stripePaymentMethodService.CreateAsync(paymentMethodOptions);
-                    paymentMethodId = createdPaymentMethod.Id;
-
-                    // Add test for specific declining card numbers
-                    if (IsTestCardThatShouldFail(paymentInfo.CardData.Number))
-                    {
-                        _logger.LogWarning("Test card that should fail was used: {CardNumber}",
-                            MaskCardNumber(paymentInfo.CardData.Number));
-                        return PaymentResult.CreateFailed(
-                            "card_declined",
-                            "Your card was declined. Please use a different payment method."
-                        );
-                    }
+                    _logger.LogError("Payment method ID is required");
+                    return PaymentResult.CreateFailed(
+                        "payment_method_required",
+                        "Payment method is required"
+                    );
                 }
-
-                // Create payment intent
+                // Create payment intent with the provided PaymentMethod ID
                 var options = new PaymentIntentCreateOptions
                 {
                     Amount = (long)(paymentInfo.Amount * 100),
-                    Currency = paymentInfo.Currency?.ToLower() ?? "usd",
-                    PaymentMethod = paymentMethodId,
+                    Currency = paymentInfo.Currency?.ToLower() ?? "aud",
+                    PaymentMethod = paymentMethodId, // ✅ Only use the Stripe PaymentMethod ID
                     Confirm = true,
                     ConfirmationMethod = "automatic",
                     Description = $"Payment for order #{paymentInfo.OrderId}",
                     Metadata = new Dictionary<string, string>
-                    {
-                        { "order_id", paymentInfo.OrderId },
-                        { "customer_email", paymentInfo.CustomerEmail }
-                    },
+            {
+                { "order_id", paymentInfo.OrderId },
+                { "customer_email", paymentInfo.CustomerEmail }
+            },
                     ReceiptEmail = paymentInfo.CustomerEmail,
-                    ReturnUrl = "https://your-app.com/payment/return"
+                    ReturnUrl = "https://omertools.com.au/payment/return" // Update this to your actual return URL
                 };
 
                 _logger.LogInformation("Creating payment intent with options: {@Options}", options);

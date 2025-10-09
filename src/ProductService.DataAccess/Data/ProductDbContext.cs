@@ -62,6 +62,9 @@ namespace ProductService.DataAccess.Data
                 entity.Property(u => u.FirstName).HasMaxLength(100).IsRequired(false);
                 entity.Property(u => u.LastName).HasMaxLength(100).IsRequired(false);
                 entity.Property(u => u.PhoneNumber).HasMaxLength(20).IsRequired(false);
+                entity.Property(u => u.AuthProvider).IsRequired().HasMaxLength(50).HasDefaultValue("Local");
+                entity.Property(u => u.GoogleId).HasMaxLength(255);
+                entity.Property(u => u.IsEmailVerified).IsRequired().HasDefaultValue(false);
                 entity.HasMany(u => u.Addresses)
                .WithOne(a => a.User)
                .HasForeignKey(a => a.UserId)

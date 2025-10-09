@@ -1,14 +1,16 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ProductService.Business.DTOs;
 using ProductService.Business.Interfaces;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace ProductService.API.Controller
 {
+    [EnableCors("AllowAll")]
     [ApiController]
     [Route("api/[controller]")]
     public class ProductsController : ControllerBase

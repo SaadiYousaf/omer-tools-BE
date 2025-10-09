@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ProductService.Business.DTOs;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace ProductService.API.Controller
 {
+    [EnableCors("AllowAll")]
     [ApiController]
     [Route("api/[controller]")]
     public class SubcategoriesController : ControllerBase

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using ProductService.Business.DTOs;
 using ProductService.Domain.Entites;
@@ -6,6 +7,7 @@ using ProductService.Domain.Interfaces;
 
 namespace ProductService.API.Controller
 {
+    [EnableCors("AllowAll")]
     [ApiController]
     [Route("api/[controller]")]
     public class BrandsController : ControllerBase

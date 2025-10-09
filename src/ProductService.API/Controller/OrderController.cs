@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using ProductService.Business.DTOs;
 using ProductService.Business.Interfaces;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace ProductService.API.Controllers
 {
+    [EnableCors("AllowAll")]
     [ApiController]
     [Route("api/orders")]
     [Authorize]
@@ -89,20 +91,22 @@ namespace ProductService.API.Controllers
                     ProductName = i.ProductName,
                     Quantity = i.Quantity,
                     UnitPrice = i.UnitPrice,
-                    ImageUrl = i.ImageUrl
+                    ImageUrl = i.ImageUrl,
                 }).ToList();
 
                 // Calculate total
-                var total = items.Sum(i => i.UnitPrice * i.Quantity);
-                _logger.LogInformation("Order total calculated: {Total}", total);
+                var subtotal = items.Sum(i => i.UnitPrice * i.Quantity);
+                var shippingCost = CalculateShipping(subtotal);
+                var totalAmount = subtotal + shippingCost;
+                _logger.LogInformation("Order total calculated: {Total}", totalAmount);
 
                 // Process payment first (without order reference)
                 var paymentInfo = new PaymentInfo(
                     paymentMethod: request.PaymentMethod,
                     paymentMethodId: request.PaymentMethodId,
                     cardData: request.CardData,
-                    amount: total,
-                    currency: "USD",
+                    amount: totalAmount,
+                    currency: "AUD",
                     customerEmail: userEmail,
                     orderId: Guid.NewGuid().ToString() // Generate a temporary ID for payment processing
                 );
@@ -125,7 +129,7 @@ namespace ProductService.API.Controllers
                 {
                     _logger.LogWarning("Payment failed: {ErrorCode} - {ErrorMessage}",
                         paymentResult.ErrorCode, paymentResult.ErrorMessage);
-                    return BadRequest(new OrderCreationResponse
+                    return Ok(new OrderCreationResponse
                     {
                         Status = "payment_failed",
                         ErrorCode = paymentResult.ErrorCode,
@@ -140,7 +144,8 @@ namespace ProductService.API.Controllers
                     userId,
                     request.SessionId,
                     paymentResult.TransactionId,
-                    items
+                    items,
+                    shippingCost
                 );
 
                 _logger.LogInformation("Order created: {OrderId}", order.Id);
@@ -203,6 +208,11 @@ namespace ProductService.API.Controllers
                 _logger.LogError(ex, "Order creation failed");
                 return StatusCode(500, new { Error = "Internal server error", Details = ex.Message });
             }
+        }
+
+        private decimal CalculateShipping(decimal subtotal)
+        {
+            return subtotal > 100 ? 0 : 12; // Same logic as frontend
         }
         [HttpGet("user")]
         public async Task<IActionResult> GetOrdersByUser()
@@ -323,12 +333,21 @@ namespace ProductService.API.Controllers
 
         [Required]
         public string PaymentMethod { get; set; }
-
+        [Required]
         public string PaymentMethodId { get; set; }
         public CardData CardData { get; set; }
 
         [Required]
         public ShippingAddressRequest ShippingAddress { get; set; }
+
+        [Range(0.01, double.MaxValue)]
+        public decimal Subtotal { get; set; }
+
+        [Range(0, double.MaxValue)]
+        public decimal ShippingCost { get; set; }
+
+        [Range(0.01, double.MaxValue)]
+        public decimal TotalAmount { get; set; }
     }
 
     public class ShippingAddressRequest

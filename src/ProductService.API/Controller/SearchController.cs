@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ProductService.DataAccess.Data;
 using Microsoft.Extensions.Logging;
+using ProductService.DataAccess.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace ProductService.API.Controllers
 {
+    [EnableCors("AllowAll")]
     [ApiController]
     [Route("api/[controller]")]
     public class SearchController : ControllerBase

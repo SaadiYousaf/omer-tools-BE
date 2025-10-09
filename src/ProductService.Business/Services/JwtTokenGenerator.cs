@@ -28,7 +28,7 @@ namespace ProductService.Business.Services
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
-
+            var audience = user.Role == "Admin"|| user.Role== "SuperAdmin" ? _jwtSettings.Audience.First(a => a.Contains("admin")): _jwtSettings.Audience.First(a => a.Contains("omertools.com.au"));
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
@@ -45,7 +45,7 @@ namespace ProductService.Business.Services
                 Expires = DateTime.UtcNow.AddMinutes(_jwtSettings.TokenExpirationInMinutes),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                 Issuer = _jwtSettings.Issuer,
-                Audience = _jwtSettings.Audience
+                Audience = audience
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);

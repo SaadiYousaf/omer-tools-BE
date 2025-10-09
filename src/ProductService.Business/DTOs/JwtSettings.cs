@@ -12,6 +12,6 @@ namespace ProductService.Business.DTOs
         public int TokenExpirationInMinutes { get; set; }
         public int RefreshTokenExpirationInDays { get; set; }
         public string Issuer { get; set; }
-        public string Audience { get; set; }
+        public List<string> Audience { get; set; }
     }
 }
