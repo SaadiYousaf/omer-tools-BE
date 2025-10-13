@@ -43,3 +43,5 @@ ScaffoldingReadMe.txt
 *.tmp
 *.swp
 *.vsidx
+/src/ProductService.API/wwwroot/uploads/subcategories
+/src/ProductService.API/wwwroot
