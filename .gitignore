@@ -45,3 +45,4 @@ ScaffoldingReadMe.txt
 *.vsidx
 /src/ProductService.API/wwwroot/uploads/subcategories
 /src/ProductService.API/wwwroot
+src/ProductService.API/wwwroot/uploads-backup.zip
