@@ -2,26 +2,31 @@
 using Microsoft.Extensions.Logging;
 using ProductService.Business.Interfaces;
 using ProductService.DataAccess.Data;
+using ProductService.Domain.Entites;
 using ProductService.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using UserService.Domain.Entities;
 
 namespace ProductService.Business.Services
 {
     public class OrderService : IOrderService
     {
+        private readonly IUserRepository _userRepository;
         private readonly ProductDbContext _context;
         private readonly ILogger<OrderService> _logger;
 
-        public OrderService(ProductDbContext context, ILogger<OrderService> logger)
+        public OrderService(ProductDbContext context, ILogger<OrderService> logger, IUserRepository userRepository)
         {
+          
+            _userRepository = userRepository;
             _context = context;
             _logger = logger;
         }
 
-        public async Task UpdateOrderShippingAddressAsync(string orderId, ShippingAddress shippingAddress)
+        public async Task UpdateOrderShippingAddressAsync(string orderId,string userId,string userEmail, ShippingAddress shippingAddress, string phoneNumber)
         {
             try
             {
@@ -35,7 +40,48 @@ namespace ProductService.Business.Services
                 // Check if shipping address already exists for this order
                 var existingAddress = await _context.ShippingAddresses
                     .FirstOrDefaultAsync(sa => sa.OrderId == orderId);
+                var existingUser = await _context.Users
+                   .FirstOrDefaultAsync(sa => sa.Email == userEmail);
+              
+                if (existingUser != null)
+                {
+                    var existingUserAddress = _userRepository.GetByIdAsync(existingUser.Id).Result.Addresses.FirstOrDefault();
+                //    var existingUserAddress = await _context.Addresses
+                //.FirstOrDefaultAsync(sa => sa.UserId == existingUser.Id);
+                    if (existingUserAddress !=null)
+                    {
+                        existingUserAddress.AddressLine1 = shippingAddress.AddressLine1;
+                        existingUserAddress.AddressLine2 = shippingAddress.AddressLine2;
+                        existingUserAddress.City = shippingAddress.City;
+                        existingUserAddress.State = shippingAddress.State;
+                        existingUserAddress.PostalCode = shippingAddress.PostalCode;
+                        existingUserAddress.Country = shippingAddress.Country;
+                        existingUserAddress.PhoneNumber = phoneNumber;
+                        existingUserAddress.UpdatedAt = DateTime.UtcNow;
 
+                        _context.Update(existingUserAddress);
+                    }
+                    else
+                    {
+                        var userAddress = new Address
+                        {
+                            Id=Guid.NewGuid().ToString(),
+                            UserId = userId,
+                            AddressLine1 = shippingAddress.AddressLine1,
+                            AddressLine2 = shippingAddress.AddressLine2,
+                            City = shippingAddress.City,
+                            State = shippingAddress.State,
+                            PostalCode = shippingAddress.PostalCode,
+                            Country = shippingAddress.Country,
+                            PhoneNumber = phoneNumber,
+                            AddressType = "Home",
+                            IsDefault = true,
+                        };
+                        await _context.Addresses.AddAsync(userAddress);
+                    }
+                    //    existingUser.PhoneNumber = phoneNumber;
+                    //_context.Users.Update(existingUser);
+                }
                 if (existingAddress != null)
                 {
                     // Update existing address
@@ -46,6 +92,7 @@ namespace ProductService.Business.Services
                     existingAddress.State = shippingAddress.State;
                     existingAddress.PostalCode = shippingAddress.PostalCode;
                     existingAddress.Country = shippingAddress.Country;
+                    existingAddress.PhoneNumber = phoneNumber;
 
                     _context.ShippingAddresses.Update(existingAddress);
                 }
@@ -54,6 +101,7 @@ namespace ProductService.Business.Services
                     // Create new shipping address
                     shippingAddress.Id = Guid.NewGuid().ToString();
                     shippingAddress.OrderId = orderId;
+                    shippingAddress.PhoneNumber=phoneNumber;
                     await _context.ShippingAddresses.AddAsync(shippingAddress);
                 }
 
@@ -75,7 +123,7 @@ namespace ProductService.Business.Services
         }
 
         // The rest of your OrderService methods remain the same...
-        public async Task<Order> CreateOrderAsync(string userId, string sessionId, string transactionId, List<OrderItem> items, decimal shippingCost)
+        public async Task<Order> CreateOrderAsync(string userId, string sessionId, string transactionId, List<OrderItem> items, decimal shippingCost, bool isConfirmAndCollect = false, bool isGuestOrder = false,string guestFullName = "", string guestEmail = "", string phoneNumber="")
         {
             var executionStrategy = _context.Database.CreateExecutionStrategy();
 
@@ -85,13 +133,46 @@ namespace ProductService.Business.Services
 
                 try
                 {
-                    // Check if user exists first
-                    var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
-                    if (!userExists)
+                    string finalUserId = userId;
+                    if (isGuestOrder)
                     {
-                        await transaction.RollbackAsync();
-                        _logger.LogError("User {UserId} does not exist", userId);
-                        throw new ArgumentException($"User {userId} does not exist");
+                        var guestUserExists = await _context.Users.FirstOrDefaultAsync(u => u.Email == guestEmail && u.LastName.Equals("Guest"));
+                        if (guestUserExists != null)
+                        {
+                            finalUserId = guestUserExists.Id;
+                        }
+                        else
+                        {
+                            // Create a guest user
+                            var guestUser = new User
+                            {
+                                Id = userId,
+                                Email = guestEmail, // guest email
+                                FirstName = guestFullName,
+                                PhoneNumber = phoneNumber,
+                                LastName = "Guest",
+                                PasswordHash = "AQAAAAEAACcQAAAAEKyuwL7rPj6N8xIkI1b7cRkzJ1ZprJ2TkKjXh8Y5VqK1aB8nLmNzXpQwOyD4rK1A==",
+                                CreatedAt = DateTime.UtcNow,
+                                IsActive = true,
+                                IsGuest = true
+                            };
+
+                            _context.Users.Add(guestUser);
+                            await _context.SaveChangesAsync(); // Save the user first
+                            _logger.LogInformation("Created guest user: {UserId}", userId);
+                        }
+                    }
+                    else
+                    {
+                        // For regular users, validate they exist
+                        var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+                        if (!userExists)
+                        {
+                            await transaction.RollbackAsync();
+                            _logger.LogError("User {UserId} does not exist", userId);
+                            throw new ArgumentException($"User {userId} does not exist");
+                        }
+                       
                     }
 
                     // Rest of your order creation code...
@@ -110,7 +191,7 @@ namespace ProductService.Business.Services
                     var order = new Order
                     {
                         Id = Guid.NewGuid().ToString(),
-                        UserId = userId,
+                        UserId = finalUserId,
                         SessionId = sessionId,
                         TransactionId = transactionId,
                         OrderNumber = GenerateOrderNumber(),
@@ -119,7 +200,9 @@ namespace ProductService.Business.Services
                         ShippingCost = shippingCost, // ✅ Save shipping cost
                         Status = "Pending",
                         PaymentStatus = "Pending",
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                         IsConfirmAndCollect = isConfirmAndCollect,
+                        IsGuestOrder = isGuestOrder // ✅ ADD THIS FLAG TO YOUR ORDER ENTITY
                     };
 
                     await _context.Orders.AddAsync(order);

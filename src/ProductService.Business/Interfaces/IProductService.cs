@@ -13,6 +13,7 @@ namespace ProductService.Business.Interfaces
         Task<IEnumerable<ProductDto>> GetProductsByBrandAsync(string brandId);
         Task<IEnumerable<ProductDto>> GetProductsBySubcategoryAsync(string subcategoryId);
         Task<IEnumerable<ProductDto>> GetFeaturedProductsAsync();
+        Task<IEnumerable<ProductDto>> GetProductSliderProductsAsync(int? maxItems = null);
         Task<ProductDto> CreateProductAsync(ProductDto productDto);
         Task UpdateProductAsync(ProductDto productDto);
         Task DeleteProductAsync(string id);

@@ -87,6 +87,61 @@ namespace ProductService.Business.Services
             });
         }
 
+        public async Task<PaymentResult> ProcessPayPalPaymentAsync(PaymentInfo paymentInfo)
+        {
+            var executionStrategy = _context.Database.CreateExecutionStrategy();
+
+            return await executionStrategy.ExecuteAsync(async () =>
+            {
+                using var transaction = await _context.Database.BeginTransactionAsync();
+
+                try
+                {
+                    // For PayPal, we're just recording the payment that already happened on frontend
+                    var payment = new Payment
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        OrderId = null, // Set to null initially
+                        Amount = paymentInfo.Amount,
+                        Currency = paymentInfo.Currency,
+                        PaymentMethod = "paypal", // This identifies it as PayPal
+                        Status = "Success", // "completed", "pending", etc.
+                        TransactionId = paymentInfo.PaymentMethodId, // Store PayPal Order ID in TransactionId
+
+                        // Use existing Stripe fields to store PayPal info creatively:
+                        Last4Digits = "PPAL", // Indicates PayPal payment
+                        CardBrand = "PayPal", // Store payment method here
+                        ExpiryMonth = null, // Not applicable for PayPal
+                        ExpiryYear = null, // Not applicable for PayPal
+
+                        // Store additional PayPal data in CustomerEmail or other existing fields
+                        CustomerEmail = paymentInfo.CustomerEmail,
+
+                        CreatedAt = DateTime.UtcNow,
+                        IsActive = true
+                    };
+
+                    await _context.Payments.AddAsync(payment);
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    _logger.LogInformation("PayPal payment recorded successfully, PayPalOrderId: {PayPalOrderId}", paymentInfo.PaymentMethodId);
+
+                    return PaymentResult.CreateSuccess(
+                        transactionId: paymentInfo.PaymentMethodId,
+                        last4: "PAYPAL",
+                        brand: "PayPal"
+                    // expiry month/year not needed for PayPal
+                    );
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError(ex, "PayPal payment recording failed");
+                    return PaymentResult.CreateFailed("system_error", "PayPal payment recording failed");
+                }
+            });
+        }
         public async Task UpdatePaymentOrderIdAsync(string transactionId, string orderId)
         {
             try

@@ -53,6 +53,10 @@ namespace ProductService.DataAccess.Repositories
             {
                 _context.Users.Update(user);
             }
+            else if (trackedEntity.IsGuest)
+            {
+                 _context.Users.Update(user);
+            }
             else
             {
                 _context.Entry(trackedEntity).CurrentValues.SetValues(user);

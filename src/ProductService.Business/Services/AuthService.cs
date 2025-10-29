@@ -60,52 +60,155 @@ namespace ProductService.Business.Services
                 };
             }
             // Check if user already exists
-            if (await _userRepository.UserExistsAsync(registrationDto.Email))
+            var existingUser = await _userRepository.GetByEmailAsync(registrationDto.Email);
+            if (existingUser != null)
             {
-                return new AuthResult
+                // ✅ HANDLE GUEST USER CONVERSION
+                if (existingUser.IsGuest)
                 {
-                    Success = false,
-                    Message = "User already exists with this email",
-                    Errors = new[] { "User already exists" }
-                };
+                    _logger.LogInformation($"Converting guest user to registered user: {registrationDto.Email}");
+                    return await ConvertGuestToRegisteredUserAsync(existingUser, registrationDto);
+                }
+                else
+                {
+                    // Regular user already exists (not a guest)
+                    return new AuthResult
+                    {
+                        Success = false,
+                        Message = "User already exists with this email",
+                        Errors = new[] { "User already exists" }
+                    };
+                }
             }
 
             // Create user
-            var user = _mapper.Map<User>(registrationDto);
-            user.Role = registrationDto.Role;
-
-            // Hash password
-            var passwordHash = _passwordHasher.HashPassword(registrationDto.Password);
-            user.PasswordHash = passwordHash.Hash;
-            user.PasswordSalt = passwordHash.Salt;
-
-            // Set default preferences
-            user.Preferences = new UserPreferences
+            return await CreateNewUserAsync(registrationDto);
+        }
+        private async Task<AuthResult> ConvertGuestToRegisteredUserAsync(User guestUser, UserRegistrationDto registrationDto)
+        {
+            try
             {
-                EmailNotifications = true,
-                SmsNotifications = false,
-                Language = "en",
-                Currency = "USD",
-                Theme = "System"
-            };
+                // Update guest user with registration details
+                guestUser.FirstName = registrationDto.FirstName;
+                guestUser.LastName = registrationDto.LastName;
+                guestUser.PhoneNumber = registrationDto.PhoneNumber;
 
-            await _userRepository.CreateAsync(user);
+                // Set proper password
+                var passwordHash = _passwordHasher.HashPassword(registrationDto.Password);
+                guestUser.PasswordHash = passwordHash.Hash;
+                guestUser.PasswordSalt = passwordHash.Salt;
 
-            // Generate tokens
-            var token = _jwtTokenGenerator.GenerateToken(user);
-            var refreshToken = _jwtTokenGenerator.GenerateRefreshToken();
+                // Convert from guest to registered user
+                guestUser.IsGuest = false;
+                guestUser.AuthProvider = "Local"; // Or keep existing if it's "Google"
+                guestUser.UpdatedAt = DateTime.UtcNow;
 
-            await _userRepository.AddRefreshTokenAsync(user.Id, refreshToken, DateTime.UtcNow.AddDays(7));
+                // Update user in database
+                await _userRepository.UpdateAsync(guestUser);
 
-            return new AuthResult
+                // Generate tokens
+                var token = _jwtTokenGenerator.GenerateToken(guestUser);
+                var refreshToken = _jwtTokenGenerator.GenerateRefreshToken();
+
+                await _userRepository.AddRefreshTokenAsync(guestUser.Id, refreshToken, DateTime.UtcNow.AddDays(7));
+
+                _logger.LogInformation($"Successfully converted guest user {guestUser.Email} to registered user");
+
+                return new AuthResult
+                {
+                    Success = true,
+                    Token = token,
+                    RefreshToken = refreshToken,
+                    User = _mapper.Map<UserDto>(guestUser),
+                    Message = "Your guest account has been upgraded to a full account! Your order history has been preserved."
+                };
+            }
+            catch (Exception ex)
             {
-                Success = true,
-                Token = token,
-                RefreshToken = refreshToken,
-                User = _mapper.Map<UserDto>(user)
-            };
+                _logger.LogError(ex, $"Failed to convert guest user to registered: {guestUser.Email}");
+                return new AuthResult
+                {
+                    Success = false,
+                    Message = "Failed to upgrade guest account",
+                    Errors = new[] { "An error occurred while upgrading your account" }
+                };
+            }
         }
 
+        private async Task<AuthResult> CreateNewUserAsync(UserRegistrationDto registrationDto)
+        {
+            try
+            {
+                // Create user
+                var user = _mapper.Map<User>(registrationDto);
+                user.Role = registrationDto.Role;
+
+                // Hash password
+                var passwordHash = _passwordHasher.HashPassword(registrationDto.Password);
+                user.PasswordHash = passwordHash.Hash;
+                user.PasswordSalt = passwordHash.Salt;
+
+                if (!string.IsNullOrEmpty(registrationDto.address))
+                {
+                    var address = new Address
+                    {
+                        UserId= user.Id,
+                        FullName = user.FirstName + user.LastName,
+                        AddressLine1 = registrationDto.address, // Or parse this into components
+                        //City = "Unknown", // You might want to parse these from the address string
+                        //State = "Unknown",
+                        PhoneNumber = registrationDto.PhoneNumber,
+                        //Country = "Unknown",
+                        IsDefault = true,
+                        AddressType = "Home", // Or "Shipping", "Billing"
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    user.Addresses.Add(address);
+                }
+
+                // Set default preferences
+                user.Preferences = new UserPreferences
+                {
+                    EmailNotifications = true,
+                    SmsNotifications = false,
+                    Language = "en",
+                    Currency = "USD",
+                    Theme = "System"
+                };
+
+                // Ensure IsGuest is false for new registrations
+                user.IsGuest = false;
+
+                await _userRepository.CreateAsync(user);
+
+                // Generate tokens
+                var token = _jwtTokenGenerator.GenerateToken(user);
+                var refreshToken = _jwtTokenGenerator.GenerateRefreshToken();
+
+                await _userRepository.AddRefreshTokenAsync(user.Id, refreshToken, DateTime.UtcNow.AddDays(7));
+
+                _logger.LogInformation($"Created new registered user: {user.Email}");
+
+                return new AuthResult
+                {
+                    Success = true,
+                    Token = token,
+                    RefreshToken = refreshToken,
+                    User = _mapper.Map<UserDto>(user),
+                    Message = "Account created successfully!"
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to create new user: {registrationDto.Email}");
+                return new AuthResult
+                {
+                    Success = false,
+                    Message = "Failed to create account",
+                    Errors = new[] { "An error occurred while creating your account" }
+                };
+            }
+        }
         public async Task<AuthResult> LoginAsync(LoginRequestDto loginRequest)
         {
             try

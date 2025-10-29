@@ -11,6 +11,8 @@ public class ShippingAddress
     public string PostalCode { get; set; }
     public string Country { get; set; }
 
+    public string PhoneNumber { get; set; } = string.Empty;
+
     // Foreign key to Order
     public string OrderId { get; set; }
     public Order Order { get; set; }

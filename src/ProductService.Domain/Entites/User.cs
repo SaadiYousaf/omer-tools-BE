@@ -33,5 +33,7 @@ namespace UserService.Domain.Entities
         public ICollection<PaymentMethod> PaymentMethods { get; set; }
         public UserPreferences Preferences { get; set; }
         public string Role { get; set; } = "User";
+
+        public bool IsGuest { get; set; } = false;
     }
 }

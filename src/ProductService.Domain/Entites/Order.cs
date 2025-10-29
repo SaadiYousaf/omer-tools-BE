@@ -26,5 +26,7 @@ namespace ProductService.Domain.Entities
         public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
         public virtual ShippingAddress ShippingAddress { get; set; }
+         public bool IsConfirmAndCollect { get; set; } = false;
+        public bool IsGuestOrder { get; set; }
     }
 }

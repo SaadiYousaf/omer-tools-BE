@@ -416,5 +416,33 @@ namespace ProductService.Business.Services
             );
         }
         #endregion
+
+        #region Product Slider Methods
+
+        public async Task<IEnumerable<ProductDto>> GetProductSliderProductsAsync(int? maxItems = null)
+        {
+            // Get all products with images
+            var products = await _unitOfWork.ProductRepository.GetAllAsync("Images");
+
+            // Apply filters for slider products
+            var sliderProducts = products
+                .Where(p =>
+                    !p.IsRedemption &&                    // No redemption products
+                    !p.IsFeatured &&                      // No featured products  
+                    !string.IsNullOrWhiteSpace(p.TagLine) // Only products with tagline
+                )
+                .OrderBy(p => p.CreatedAt)                // Optional: order by creation date
+                .AsEnumerable();
+
+            // Apply max items limit if specified
+            if (maxItems.HasValue && maxItems > 0)
+            {
+                sliderProducts = sliderProducts.Take(maxItems.Value);
+            }
+
+            return _mapper.Map<IEnumerable<ProductDto>>(sliderProducts);
+        }
+
+        #endregion
     }
 }

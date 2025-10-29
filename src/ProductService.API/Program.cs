@@ -157,14 +157,15 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-app.UseCors("AllowAll"); // MUST BE FIRST
+app.UseCors("AllowAll");
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapMethods("/{*path}", new[] { "OPTIONS" }, async (HttpContext context) =>
 {
     context.Response.StatusCode = 200;
     await context.Response.WriteAsync("OK");
 });
-app.UseAuthentication();
-app.UseAuthorization();
+
 
 // Stripe Webhook Endpoint
 app.MapPost("/webhooks/stripe", async (HttpContext context) =>

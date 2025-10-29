@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ProductService.DataAccess.Data;
+using ProductService.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace ProductService.API.Controllers
     {
         private readonly ProductDbContext _context;
         private readonly ILogger<SearchController> _logger;
-        private const int AutocompleteLimit = 8;
+        private const int AutocompleteLimit = 10;
         private const int SearchResultLimit = 50;
 
         public SearchController(
@@ -52,7 +53,15 @@ namespace ProductService.API.Controllers
 
                 var normalizedTerm = term.Trim().ToLower();
 
-                var productMatches = await _context.Products
+                var searchTerms = normalizedTerm.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                if (searchTerms.Length == 0)
+                {
+                    return Ok(new List<AutocompleteSuggestionDto>());
+                }
+
+                // FIRST: Look for exact phrase matches (highest priority)
+                var exactProductMatches = await _context.Products
                     .Include(p => p.Subcategory)
                         .ThenInclude(s => s.Category)
                     .Where(p => p.Name.ToLower().Contains(normalizedTerm))
@@ -65,26 +74,76 @@ namespace ProductService.API.Controllers
                         Category = p.Subcategory.Category.Name + " > " + p.Subcategory.Name,
                         ReferenceId = p.Id
                     })
-                    .Take(AutocompleteLimit)
+                    .Take(5) // Reserve some slots for exact matches
                     .ToListAsync();
 
+                // SECOND: Look for products that match ALL search terms
+                var allTermsProductMatches = await _context.Products
+                    .Include(p => p.Subcategory)
+                        .ThenInclude(s => s.Category)
+                    .Where(p => searchTerms.All(st => p.Name.ToLower().Contains(st)))
+                    .OrderByDescending(p => p.IsFeatured)
+                    .ThenBy(p => p.Name)
+                    .Select(p => new AutocompleteSuggestionDto
+                    {
+                        Type = "Product",
+                        Value = p.Name,
+                        Category = p.Subcategory.Category.Name + " > " + p.Subcategory.Name,
+                        ReferenceId = p.Id
+                    })
+                    .Take(5) // Reserve slots for "all terms" matches
+                    .ToListAsync();
+
+                // THIRD: Look for products that match ANY search term (fallback)
+                var remainingSlots = AutocompleteLimit - exactProductMatches.Count - allTermsProductMatches.Count;
+                var anyTermProductMatches = new List<AutocompleteSuggestionDto>();
+
+                if (remainingSlots > 0)
+                {
+                    anyTermProductMatches = await _context.Products
+                        .Include(p => p.Subcategory)
+                            .ThenInclude(s => s.Category)
+                        .Where(p => searchTerms.Any(st => p.Name.ToLower().Contains(st)))
+                        .OrderByDescending(p => p.IsFeatured)
+                        .ThenBy(p => p.Name)
+                        .Select(p => new AutocompleteSuggestionDto
+                        {
+                            Type = "Product",
+                            Value = p.Name,
+                            Category = p.Subcategory.Category.Name + " > " + p.Subcategory.Name,
+                            ReferenceId = p.Id
+                        })
+                        .Take(remainingSlots)
+                        .ToListAsync();
+                }
+
+                // Combine with priority: Exact matches > All terms matches > Any term matches
+                var productMatches = exactProductMatches
+                    .Concat(allTermsProductMatches)
+                    .Concat(anyTermProductMatches)
+                    .GroupBy(p => p.ReferenceId)
+                    .Select(g => g.First())
+                    .Take(AutocompleteLimit)
+                    .ToList();
+
+                // Brands search - match ANY of the search terms
                 var brandMatches = await _context.Brands
                     .Include(b => b.BrandCategories)
                         .ThenInclude(bc => bc.Category)
-                    .Where(b => b.Name.ToLower().Contains(normalizedTerm))
+                    .Where(b => searchTerms.Any(st => b.Name.ToLower().Contains(st)))
                     .Select(b => new AutocompleteSuggestionDto
                     {
                         ReferenceId = b.Id,
                         Value = b.Name,
                         Type = "Brand",
-                        // Get the first category name or a default if none exists
                         Category = b.BrandCategories.Select(bc => bc.Category.Name).FirstOrDefault() ?? "No Category"
                     })
                     .Take(AutocompleteLimit)
                     .ToListAsync();
 
+                // Categories search - match ANY of the search terms
                 var categoryMatches = await _context.Categories
-                    .Where(c => c.Name.ToLower().Contains(normalizedTerm))
+                    .Where(c => searchTerms.Any(st => c.Name.ToLower().Contains(st)))
                     .Select(c => new AutocompleteSuggestionDto
                     {
                         Type = "Category",
@@ -103,7 +162,21 @@ namespace ProductService.API.Controllers
                     .Take(AutocompleteLimit)
                     .ToList();
 
-                return Ok(suggestions);
+                var scoredSuggestions = suggestions
+    .Select(s => new
+    {
+        Suggestion = s,
+        Score = searchTerms.Count(st => s.Value.ToLower().Contains(st)) +
+                searchTerms.Count(st => s.Category?.ToLower().Contains(st) ?? false)
+    })
+    .Where(x => x.Score > 0) // Ensure at least one term matches
+    .OrderByDescending(x => x.Score)
+    .ThenBy(x => x.Suggestion.Value)
+    .Select(x => x.Suggestion)
+    .Take(AutocompleteLimit)
+    .ToList();
+
+                return Ok(scoredSuggestions);
             }
             catch (Exception ex)
             {
@@ -124,6 +197,13 @@ namespace ProductService.API.Controllers
                 if (validationResult != null) return validationResult;
 
                 var term = query.Term.Trim().ToLower();
+                var searchTerms = term.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                if (searchTerms.Length == 0)
+                {
+                    return BadRequest("Valid search term is required.");
+                }
+
                 var baseQuery = _context.Products
                     .Include(p => p.Brand)
                     .Include(p => p.Subcategory)
@@ -131,14 +211,16 @@ namespace ProductService.API.Controllers
                     .Include(p => p.Images)
                     .AsQueryable();
 
+                // Multi-term search using string concatenation
                 baseQuery = baseQuery.Where(p =>
-                    EF.Functions.Like(p.Name, $"%{term}%") ||
-                    EF.Functions.Like(p.Description, $"%{term}%") ||
-                    EF.Functions.Like(p.Specifications, $"%{term}%") ||
-                    EF.Functions.Like(p.Brand.Name, $"%{term}%") ||
-                    EF.Functions.Like(p.Subcategory.Name, $"%{term}%") ||
-                    EF.Functions.Like(p.Subcategory.Category.Name, $"%{term}%"));
+                    searchTerms.Any(st => EF.Functions.Like(p.Name, "%" + st + "%")) ||
+                    //searchTerms.Any(st => EF.Functions.Like(p.Description, "%" + st + "%")) ||
+                    //searchTerms.Any(st => EF.Functions.Like(p.Specifications, "%" + st + "%")) ||
+                    searchTerms.Any(st => EF.Functions.Like(p.Brand.Name, "%" + st + "%")) ||
+                    searchTerms.Any(st => EF.Functions.Like(p.Subcategory.Name, "%" + st + "%")) ||
+                    searchTerms.Any(st => EF.Functions.Like(p.Subcategory.Category.Name, "%" + st + "%")));
 
+                // Rest of your existing code remains the same...
                 // Category filtering
                 if (!string.IsNullOrEmpty(query.CategoryId))
                 {
@@ -161,6 +243,7 @@ namespace ProductService.API.Controllers
                     baseQuery = baseQuery.Where(p => p.Price <= query.MaxPrice.Value);
                 }
 
+                // Use simple sorting for now - remove the complex relevance sorting
                 baseQuery = query.SortBy switch
                 {
                     "price_asc" => baseQuery.OrderBy(p => p.Price),
@@ -168,7 +251,7 @@ namespace ProductService.API.Controllers
                     "name_asc" => baseQuery.OrderBy(p => p.Name),
                     "name_desc" => baseQuery.OrderByDescending(p => p.Name),
                     "featured" => baseQuery.OrderByDescending(p => p.IsFeatured),
-                    _ => baseQuery.OrderByDescending(p => p.IsFeatured)
+                    _ => baseQuery.OrderByDescending(p => p.IsFeatured).ThenBy(p => p.Name)
                 };
 
                 var totalCount = await baseQuery.CountAsync();
@@ -248,6 +331,22 @@ namespace ProductService.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+        private IQueryable<Product> OrderByRelevance(IQueryable<Product> query, string[] searchTerms)
+        {
+            // This is a simplified relevance calculation
+            // In a production system, you might want to use Full-Text Search or more sophisticated scoring
+            return query
+                .AsEnumerable() // Switch to client-side evaluation for complex scoring
+                .AsQueryable()
+                .OrderByDescending(p =>
+                    searchTerms.Count(st => p.Name.ToLower().Contains(st)) * 10 + // Name matches are most important
+                    searchTerms.Count(st => p.Brand.Name.ToLower().Contains(st)) * 5 + // Brand matches are important
+                    searchTerms.Count(st => p.Description.ToLower().Contains(st)) * 3 + // Description matches
+                    searchTerms.Count(st => p.Subcategory.Name.ToLower().Contains(st)) * 2 + // Category matches
+                    (p.IsFeatured ? 5 : 0)) // Boost featured products
+                .ThenBy(p => p.Name);
+        }
+
     }
 
     public class SearchQueryDto

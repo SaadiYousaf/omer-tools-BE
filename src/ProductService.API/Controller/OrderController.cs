@@ -15,10 +15,8 @@ namespace ProductService.API.Controllers
     [EnableCors("AllowAll")]
     [ApiController]
     [Route("api/orders")]
-    [Authorize]
     public class OrderController : ControllerBase
     {
-
         private readonly IOrderService _orderService;
         private readonly IPaymentService _paymentService;
         private readonly IEmailService _emailService;
@@ -50,27 +48,33 @@ namespace ProductService.API.Controllers
                 return BadRequest(new { errors = ModelState });
             }
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? request.UserEmail;
+            string userId = null;
+            string userEmail = request.UserEmail;
 
-            _logger.LogInformation("User ID from token: {UserId}, User email: {UserEmail}", userId, userEmail);
-
-            if (string.IsNullOrWhiteSpace(userId))
+            // Check if user is authenticated
+            if (User.Identity.IsAuthenticated)
             {
-                _logger.LogWarning("User not authenticated");
-                return Unauthorized(new { message = "User not authenticated" });
+                userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                userEmail = User.FindFirstValue(ClaimTypes.Email) ?? request.UserEmail;
+                _logger.LogInformation("Authenticated user - User ID: {UserId}, Email: {UserEmail}", userId, userEmail);
             }
-
-            if (string.IsNullOrWhiteSpace(userEmail))
+            else
             {
-                _logger.LogWarning("Email address is required");
-                return BadRequest(new { message = "Email address is required" });
+                // Guest user - validate email
+                if (string.IsNullOrWhiteSpace(request.UserEmail))
+                {
+                    _logger.LogWarning("Email address is required for guest checkout");
+                    return BadRequest(new { message = "Email address is required for guest checkout" });
+                }
+
+                userEmail = request.UserEmail;
+                _logger.LogInformation("Guest user - Email: {UserEmail}", userEmail);
             }
 
             try
             {
-                // Check if userId is an email (old format) and resolve to GUID if needed
-                if (userId.Contains("@"))
+                // For authenticated users, resolve user ID if it's in email format
+                if (userId != null && userId.Contains("@"))
                 {
                     _logger.LogInformation("User ID is an email, resolving to GUID: {Email}", userId);
                     var user = await _userRepository.GetByEmailAsync(userId);
@@ -81,6 +85,13 @@ namespace ProductService.API.Controllers
                     }
                     userId = user.Id;
                     _logger.LogInformation("Resolved user ID: {UserId}", userId);
+                }
+
+                // For guest users, create a temporary user ID or use null
+                if (userId == null)
+                {
+                    userId = $"guest_{Guid.NewGuid()}";
+                    _logger.LogInformation("Generated guest user ID: {UserId}", userId);
                 }
 
                 // Map request items (DTO) to domain items
@@ -94,58 +105,105 @@ namespace ProductService.API.Controllers
                     ImageUrl = i.ImageUrl,
                 }).ToList();
 
-                // Calculate total
+                // Calculate total (use provided values but validate)
                 var subtotal = items.Sum(i => i.UnitPrice * i.Quantity);
-                var shippingCost = CalculateShipping(subtotal);
+                var shippingCost = request.IsConfirmAndCollect ? 0 : CalculateShipping(subtotal);
                 var totalAmount = subtotal + shippingCost;
-                _logger.LogInformation("Order total calculated: {Total}", totalAmount);
 
-                // Process payment first (without order reference)
-                var paymentInfo = new PaymentInfo(
-                    paymentMethod: request.PaymentMethod,
-                    paymentMethodId: request.PaymentMethodId,
-                    cardData: request.CardData,
-                    amount: totalAmount,
-                    currency: "AUD",
-                    customerEmail: userEmail,
-                    orderId: Guid.NewGuid().ToString() // Generate a temporary ID for payment processing
-                );
-
-                _logger.LogInformation("Processing payment...");
-                var paymentResult = await _paymentService.ProcessPaymentAsync(paymentInfo);
-
-                if (paymentResult.RequiresAction)
+                // Validate calculated amounts match provided amounts (with small tolerance for floating point)
+                if (Math.Abs(subtotal - request.Subtotal) > 0.01m)
                 {
-                    _logger.LogInformation("Payment requires additional action");
-                    return Ok(new OrderCreationResponse
-                    {
-                        Status = "requires_action",
-                        ClientSecret = paymentResult.ClientSecret,
-                        Message = "Additional authentication required"
-                    });
+                    _logger.LogWarning("Subtotal mismatch: calculated {Calculated} vs provided {Provided}",
+                        subtotal, request.Subtotal);
+                    return BadRequest(new { message = "Subtotal calculation mismatch" });
                 }
 
-                if (!paymentResult.IsSuccess)
+                if (Math.Abs(totalAmount - request.TotalAmount) > 0.01m)
                 {
-                    _logger.LogWarning("Payment failed: {ErrorCode} - {ErrorMessage}",
-                        paymentResult.ErrorCode, paymentResult.ErrorMessage);
-                    return Ok(new OrderCreationResponse
-                    {
-                        Status = "payment_failed",
-                        ErrorCode = paymentResult.ErrorCode,
-                        Message = paymentResult.ErrorMessage
-                    });
+                    _logger.LogWarning("Total amount mismatch: calculated {Calculated} vs provided {Provided}",
+                        totalAmount, request.TotalAmount);
+                    return BadRequest(new { message = "Total amount calculation mismatch" });
                 }
 
-                _logger.LogInformation("Payment succeeded, creating order...");
+                _logger.LogInformation("Order total validated: {Total}", totalAmount);
+
+                var paymentAlreadyApprove = false;
+                string TransactionId = string.Empty;
+                if (request.PaymentMethod.Equals("paypal") & request.PaymentCompleted)
+                {
+                    paymentAlreadyApprove = true;
+                    TransactionId = request.PaymentMethodId;
+                    var paymentInfoPaypal = new PaymentInfo(
+                      paymentMethod: request.PaymentMethod,
+                      paymentMethodId: request.PaymentMethodId,
+                      cardData: request.CardData,
+                      amount: totalAmount,
+                      currency: "AUD",
+                      customerEmail: userEmail,
+                      orderId: Guid.NewGuid().ToString() // Generate a temporary ID for payment processing
+                  );
+                    var paymentResult = await _paymentService.ProcessPayPalPaymentAsync(paymentInfoPaypal);
+                }
+
+                if (!paymentAlreadyApprove)
+                {
+
+
+                    // Process payment first (without order reference)
+                    var paymentInfo = new PaymentInfo(
+                        paymentMethod: request.PaymentMethod,
+                        paymentMethodId: request.PaymentMethodId,
+                        cardData: request.CardData,
+                        amount: totalAmount,
+                        currency: "AUD",
+                        customerEmail: userEmail,
+                        orderId: Guid.NewGuid().ToString() // Generate a temporary ID for payment processing
+                    );
+
+                    _logger.LogInformation("Processing payment...");
+                    var paymentResult = await _paymentService.ProcessPaymentAsync(paymentInfo);
+
+                    if (paymentResult.RequiresAction)
+                    {
+                        _logger.LogInformation("Payment requires additional action");
+                        return Ok(new OrderCreationResponse
+                        {
+                            Status = "requires_action",
+                            ClientSecret = paymentResult.ClientSecret,
+                            Message = "Additional authentication required"
+                        });
+                    }
+
+
+                    if (!paymentResult.IsSuccess)
+                    {
+                        _logger.LogWarning("Payment failed: {ErrorCode} - {ErrorMessage}",
+                            paymentResult.ErrorCode, paymentResult.ErrorMessage);
+                        return Ok(new OrderCreationResponse
+                        {
+                            Status = "payment_failed",
+                            ErrorCode = paymentResult.ErrorCode,
+                            Message = paymentResult.ErrorMessage
+                        });
+                    }
+                    TransactionId = paymentResult.TransactionId;
+                    _logger.LogInformation("Payment succeeded, creating order...");
+                }
+
+                _logger.LogInformation("Paypal payment, creating order...");
 
                 // Payment succeeded, now create order
                 var order = await _orderService.CreateOrderAsync(
                     userId,
                     request.SessionId,
-                    paymentResult.TransactionId,
+                    TransactionId,
                     items,
-                    shippingCost
+                    shippingCost,
+                    request.IsConfirmAndCollect,
+                    isGuestOrder: !User.Identity.IsAuthenticated, // Pass guest order flag
+                    request?.GuestUser?.FullName ?? "",
+                    request?.GuestUser?.Email ??"",
+                    request?.PhoneNumber
                 );
 
                 _logger.LogInformation("Order created: {OrderId}", order.Id);
@@ -153,6 +211,8 @@ namespace ProductService.API.Controllers
                 // Update shipping address directly without tracking issues
                 await _orderService.UpdateOrderShippingAddressAsync(
                     order.Id,
+                    userId,
+                    userEmail,
                     new ShippingAddress
                     {
                         FullName = request.ShippingAddress.FullName,
@@ -162,11 +222,12 @@ namespace ProductService.API.Controllers
                         State = request.ShippingAddress.State,
                         PostalCode = request.ShippingAddress.PostalCode,
                         Country = request.ShippingAddress.Country
-                    }
+                    },
+                    request.PhoneNumber
                 );
 
                 // Update payment record with the actual order ID
-                await _paymentService.UpdatePaymentOrderIdAsync(paymentResult.TransactionId, order.Id);
+                await _paymentService.UpdatePaymentOrderIdAsync(TransactionId, order.Id);
 
                 // Update order status to succeeded
                 await _orderService.UpdateOrderStatusAsync(order.Id, "Succeeded");
@@ -190,7 +251,7 @@ namespace ProductService.API.Controllers
                     Status = "succeeded",
                     OrderId = order.Id,
                     OrderNumber = order.OrderNumber,
-                    TransactionId = paymentResult.TransactionId,
+                    TransactionId = TransactionId,
                     Message = "Order created successfully. Email notification may be delayed."
                 });
             }
@@ -214,7 +275,9 @@ namespace ProductService.API.Controllers
         {
             return subtotal > 100 ? 0 : 12; // Same logic as frontend
         }
+
         [HttpGet("user")]
+        [Authorize] // This endpoint still requires authentication
         public async Task<IActionResult> GetOrdersByUser()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -235,7 +298,7 @@ namespace ProductService.API.Controllers
             return Ok(orders);
         }
 
-
+        // Other methods remain the same...
         [HttpGet("admin")]
         [Authorize(Policy = "AdminAccess")]
         public async Task<IActionResult> GetAllOrders([FromQuery] string status = null)
@@ -280,7 +343,15 @@ namespace ProductService.API.Controllers
                 if (order == null)
                     return NotFound(new { message = "Order not found" });
 
-                // Check if the current user has access to this order
+                // For guest orders, allow access by order ID and email
+                if (order.UserId.StartsWith("guest_"))
+                {
+                    // You might want to implement a different access control for guest orders
+                    // For now, allow access to anyone with the order ID
+                    return Ok(order);
+                }
+
+                // For regular users, check if the current user has access to this order
                 var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (order.UserId != currentUserId)
                     return Forbid();
@@ -295,6 +366,7 @@ namespace ProductService.API.Controllers
         }
 
         [HttpPost("{orderId}/refund")]
+        [Authorize(Roles = "Admin,SuperAdmin")] // Only admins can process refunds
         public async Task<IActionResult> RefundOrder(string orderId, [FromBody] RefundRequest request)
         {
             try
@@ -313,19 +385,13 @@ namespace ProductService.API.Controllers
         }
     }
 
-    // DTO classes
-    public class OrderItemRequest
-    {
-        [Required] public string ProductId { get; set; }
-        [Required] public string ProductName { get; set; }
-        [Range(1, int.MaxValue)] public int Quantity { get; set; }
-        [Range(0.01, double.MaxValue)] public decimal UnitPrice { get; set; }
-        public string ImageUrl { get; set; }
-    }
-
+    // Update the DTO to include guest order information
     public class OrderCreationRequest
     {
         public string SessionId { get; set; }
+
+        [Required(ErrorMessage = "Email address is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
         public string UserEmail { get; set; }
 
         [Required]
@@ -333,8 +399,16 @@ namespace ProductService.API.Controllers
 
         [Required]
         public string PaymentMethod { get; set; }
+
         [Required]
         public string PaymentMethodId { get; set; }
+
+        public bool PaymentCompleted { get; set; } = false;
+
+        public string PaymentStatus { get; set; } = string.Empty;
+
+        public string PhoneNumber { get; set; }
+
         public CardData CardData { get; set; }
 
         [Required]
@@ -348,6 +422,28 @@ namespace ProductService.API.Controllers
 
         [Range(0.01, double.MaxValue)]
         public decimal TotalAmount { get; set; }
+
+        public bool IsConfirmAndCollect { get; set; } = false;
+
+        // Optional: Add guest-specific fields if needed
+        public bool IsGuestOrder { get; set; } = false;
+        public GuestUserInfo? GuestUser { get; set; }
+    }
+
+    public class GuestUserInfo
+    {
+        public string FullName { get; set; }
+        public string Email { get; set; }
+    }
+
+    // Other DTO classes remain the same...
+    public class OrderItemRequest
+    {
+        [Required] public string ProductId { get; set; }
+        [Required] public string ProductName { get; set; }
+        [Range(1, int.MaxValue)] public int Quantity { get; set; }
+        [Range(0.01, double.MaxValue)] public decimal UnitPrice { get; set; }
+        public string ImageUrl { get; set; }
     }
 
     public class ShippingAddressRequest
@@ -389,6 +485,7 @@ namespace ProductService.API.Controllers
         [Range(0.01, double.MaxValue)]
         public decimal Amount { get; set; }
     }
+
     public class UpdateOrderStatusRequest
     {
         [Required]

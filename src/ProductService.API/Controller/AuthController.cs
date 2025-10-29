@@ -15,6 +15,7 @@ namespace ProductService.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IUserService _userService;
         private readonly ILogger<AuthController> _logger;
 
         public AuthController(IAuthService authService, ILogger<AuthController> logger)
@@ -225,6 +226,15 @@ namespace ProductService.API.Controllers
                     Errors = new[] { "An error occurred during Google sign-in" }
                 });
             }
+        }
+        [HttpGet("users/profile")]
+        [Authorize]
+        public async Task<IActionResult> GetUserProfile()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _userService.GetUserProfileAsync(userId); // Your method to get user with addresses
+
+            return Ok(user);
         }
     }
 

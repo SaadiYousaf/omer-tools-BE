@@ -11,16 +11,16 @@ namespace ProductService.Domain.Entites
     public class Address : BaseEntity
     {
         public string UserId { get; set; }
-        public string AddressType { get; set; } // Home, Work, etc.
-        public string FullName { get; set; }
-        public string AddressLine1 { get; set; }
-        public string AddressLine2 { get; set; }
-        public string City { get; set; }
-        public string State { get; set; }
-        public string PostalCode { get; set; }
-        public string Country { get; set; }
+        public string AddressType { get; set; } = string.Empty; // Home, Work, etc. 
+        public string FullName { get; set; } = string.Empty;
+        public string AddressLine1 { get; set; } = string.Empty;
+        public string AddressLine2 { get; set; } = string.Empty;
+        public string City { get; set; } = string.Empty;
+        public string State { get; set; } = string.Empty;
+        public string PostalCode { get; set; } = string.Empty;
+        public string Country { get; set; } = string.Empty;
         public bool IsDefault { get; set; }
-        public string PhoneNumber { get; set; }
+        public string PhoneNumber { get; set; } = string.Empty;
 
         public User User { get; set; }
     }

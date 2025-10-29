@@ -106,7 +106,11 @@ namespace ProductService.Business.DTOs
         public string LastName { get; set; }
 
         public string PhoneNumber { get; set; }
+
+        public string address { get; set; }
         public string Role { get; set; } = "User";
+
+
     }
     // GoogleAuthRequestDto.cs
     public class GoogleAuthRequestDto

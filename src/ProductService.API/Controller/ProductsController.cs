@@ -110,6 +110,20 @@ namespace ProductService.API.Controller
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        [HttpGet("slider")]
+        public async Task<IActionResult> GetProductSliderProducts([FromQuery] int? maxItems = null)
+        {
+            try
+            {
+                var products = await _productService.GetProductSliderProductsAsync(maxItems);
+                return Ok(products);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while fetching slider products", error = ex.Message });
+            }
+        }
         [HttpGet("redemption")]
         public async Task<IActionResult> GetRedemptionProducts()
         {
@@ -222,7 +236,57 @@ namespace ProductService.API.Controller
                 return StatusCode(500, "Internal server error");
             }
         }
+        [HttpDelete("images/{imageId}")]
+        public async Task<IActionResult> DeleteImage(string imageId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(imageId))
+                    return BadRequest(new { success = false, message = "Invalid image ID" });
 
+                // Get the image first to check if it exists and get file path
+                var image = await _productService.GetProductImageByIdAsync(imageId);
+                if (image == null)
+                    return NotFound(new { success = false, message = "Image not found" });
+
+                // Delete the physical file
+                if (!string.IsNullOrEmpty(image.ImageUrl))
+                {
+                    var webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                    var filePath = Path.Combine(webRootPath, image.ImageUrl.TrimStart('/'));
+
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                        _logger.LogInformation($"Deleted physical file: {filePath}");
+                    }
+                }
+
+                // Delete the image record from database
+                await _productService.DeleteProductImageAsync(imageId);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Image deleted successfully",
+                    deletedImageId = imageId
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, $"Image with ID {imageId} not found");
+                return NotFound(new { success = false, message = "Image not found" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error deleting image with ID {imageId}");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Internal server error while deleting image"
+                });
+            }
+        }
         [HttpPost("images")]
         public async Task<IActionResult> UploadImage(
             [FromForm] IFormFile file,

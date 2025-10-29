@@ -3,8 +3,8 @@ using ProductService.Domain.Entities;
 
 public interface IOrderService
 {
-    Task<Order> CreateOrderAsync(string userId, string sessionId, string transactionId, List<OrderItem> orderItems ,decimal shippingCost);
-    Task UpdateOrderShippingAddressAsync(string orderId, ShippingAddress shippingAddress);
+    Task<Order> CreateOrderAsync(string userId, string sessionId, string transactionId, List<OrderItem> orderItems ,decimal shippingCost, bool isConfirmAndCollect = false, bool isGuestOrder = false,string fullName="", string email = "",string phoneNumber="");
+    Task UpdateOrderShippingAddressAsync(string orderId,string userId,string userEmail, ShippingAddress shippingAddress,string phoneNumber);
     Task<bool> UpdateOrderStatusAsync(string orderId, string status);
     Task<IEnumerable<Order>> GetOrdersByUserAsync(string userId);
     Task<Order> GetOrderByIdAsync(string orderId);
