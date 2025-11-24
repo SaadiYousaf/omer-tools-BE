@@ -68,7 +68,16 @@ namespace ProductService.Business.DTOs
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
         public bool IsActive { get; set; } = true;
-        public IEnumerable<ProductImageDto> Images { get; set; } = new List<ProductImageDto>();
+
+		// SEO Properties
+		public string MetaTitle { get; set; } = string.Empty;
+		public string MetaDescription { get; set; } = string.Empty;
+		public string MetaKeywords { get; set; } = string.Empty;
+		public string CanonicalUrl { get; set; } = string.Empty;
+		public string OgTitle { get; set; } = string.Empty;
+		public string OgDescription { get; set; } = string.Empty;
+		public string OgImage { get; set; } = string.Empty;
+		public IEnumerable<ProductImageDto> Images { get; set; } = new List<ProductImageDto>();
         public IEnumerable<ProductVariantDto> Variants { get; set; } = new List<ProductVariantDto>();
     }
     public record ProductImageDto(

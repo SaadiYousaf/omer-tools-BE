@@ -20,11 +20,22 @@ namespace ProductService.Domain.Entities
         public string Dimensions { get; set; } // "LxWxH" format
         public bool IsFeatured { get; set; }
         public string WarrantyPeriod { get; set; } // "1 year", "2 years", etc.
-
-        // Navigation properties
-        public Subcategory Subcategory { get; set; }
-        public Brand Brand { get; set; }
         public string TagLine { get; set; }
+
+		// SEO Properties 
+		public string MetaTitle { get; set; } =string.Empty;
+		public string MetaDescription { get; set; } = string.Empty;
+		public string MetaKeywords { get; set; } = string.Empty;
+		public string CanonicalUrl { get; set; } = string.Empty;
+		public string OgTitle { get; set; } = string.Empty;
+		public string OgDescription { get; set; } = string.Empty;
+		public string OgImage { get; set; } = string.Empty;
+
+
+
+		// Navigation properties
+		public Subcategory Subcategory { get; set; }
+        public Brand Brand { get; set; }
         public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
         public ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
 

@@ -333,6 +333,7 @@ namespace ProductService.Business.Services
                     .Include(o => o.Items)
                     .Include(o => o.ShippingAddress)
                     .Include(o => o.Payments)
+                    .Include(o=>o.User)
                     .AsQueryable();
 
                 if (!string.IsNullOrEmpty(status) && status.ToLower() != "all")

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProductService.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using ProductService.DataAccess.Data;
 namespace ProductService.DataAccess.Migrations
 {
     [DbContext(typeof(ProductDbContext))]
-    partial class ProductDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251112190716_AddSEOFieldsToProductDb")]
+    partial class AddSEOFieldsToProductDb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -743,6 +746,18 @@ namespace ProductService.DataAccess.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("TagLine")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TwitterCard")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TwitterDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TwitterImage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TwitterTitle")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")

@@ -189,40 +189,68 @@ namespace ProductService.API.Controllers
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(query.Term))
-                {
-                    return BadRequest("Search term is required.");
-                }
-                var validationResult = ValidateSearchQuery(query);
-                if (validationResult != null) return validationResult;
+				if (string.IsNullOrWhiteSpace(query.Term))
+				{
+					return BadRequest("Search term is required.");
+				}
+				var validationResult = ValidateSearchQuery(query);
+				if (validationResult != null) return validationResult;
 
-                var term = query.Term.Trim().ToLower();
-                var searchTerms = term.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+				var term = query.Term.Trim().ToLower();
+				var searchTerms = term.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-                if (searchTerms.Length == 0)
-                {
-                    return BadRequest("Valid search term is required.");
-                }
+				if (searchTerms.Length == 0)
+				{
+					return BadRequest("Valid search term is required.");
+				}
 
-                var baseQuery = _context.Products
-                    .Include(p => p.Brand)
-                    .Include(p => p.Subcategory)
-                        .ThenInclude(s => s.Category)
-                    .Include(p => p.Images)
-                    .AsQueryable();
+				var baseQuery = _context.Products
+					.Include(p => p.Brand)
+					.Include(p => p.Subcategory)
+						.ThenInclude(s => s.Category)
+					.Include(p => p.Images)
+					.AsQueryable();
 
-                // Multi-term search using string concatenation
-                baseQuery = baseQuery.Where(p =>
-                    searchTerms.Any(st => EF.Functions.Like(p.Name, "%" + st + "%")) ||
-                    //searchTerms.Any(st => EF.Functions.Like(p.Description, "%" + st + "%")) ||
-                    //searchTerms.Any(st => EF.Functions.Like(p.Specifications, "%" + st + "%")) ||
-                    searchTerms.Any(st => EF.Functions.Like(p.Brand.Name, "%" + st + "%")) ||
-                    searchTerms.Any(st => EF.Functions.Like(p.Subcategory.Name, "%" + st + "%")) ||
-                    searchTerms.Any(st => EF.Functions.Like(p.Subcategory.Category.Name, "%" + st + "%")));
+				// First, try to identify if any search terms match brand names exactly
+				var brandNames = await _context.Brands
+					.Select(b => b.Name.ToLower())
+					.ToListAsync();
 
-                // Rest of your existing code remains the same...
-                // Category filtering
-                if (!string.IsNullOrEmpty(query.CategoryId))
+				var matchedBrands = searchTerms
+					.Where(term => brandNames.Any(brand => brand.Contains(term)))
+					.ToList();
+
+				var productTerms = searchTerms
+					.Where(term => !matchedBrands.Contains(term))
+					.ToList();
+
+				// Build the query based on brand and product term matching
+				if (matchedBrands.Any() && productTerms.Any())
+				{
+					// Search for products that match BOTH brand AND product terms
+					baseQuery = baseQuery.Where(p =>
+						matchedBrands.Any(brand => EF.Functions.Like(p.Brand.Name, "%" + brand + "%")) &&
+						productTerms.Any(term => EF.Functions.Like(p.Name, "%" + term + "%")));
+				}
+				else if (matchedBrands.Any())
+				{
+					// Only brand terms found
+					baseQuery = baseQuery.Where(p =>
+						matchedBrands.Any(brand => EF.Functions.Like(p.Brand.Name, "%" + brand + "%")));
+				}
+				else
+				{
+					// No brand terms found, search across all fields
+					baseQuery = baseQuery.Where(p =>
+						searchTerms.Any(st => EF.Functions.Like(p.Name, "%" + st + "%")) ||
+						searchTerms.Any(st => EF.Functions.Like(p.Brand.Name, "%" + st + "%")) ||
+						searchTerms.Any(st => EF.Functions.Like(p.Subcategory.Name, "%" + st + "%")) ||
+						searchTerms.Any(st => EF.Functions.Like(p.Subcategory.Category.Name, "%" + st + "%")));
+				}
+
+				// Rest of your existing code remains the same...
+				// Category filtering
+				if (!string.IsNullOrEmpty(query.CategoryId))
                 {
                     baseQuery = baseQuery.Where(p => p.Subcategory.CategoryId == query.CategoryId);
                 }

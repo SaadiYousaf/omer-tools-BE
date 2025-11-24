@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using ProductService.Business.DTOs;
 using ProductService.Business.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -16,16 +17,22 @@ namespace ProductService.API.Controller
     public class ProductsController : ControllerBase
     {
         private readonly IProductService _productService;
-        private readonly ILogger<ProductsController> _logger;
+		private readonly ISEOService _seoService;
+		private readonly ILogger<ProductsController> _logger;
+		private readonly IConfiguration _configuration;
 
-        public ProductsController(
+		public ProductsController(
             IProductService productService,
-            ILogger<ProductsController> logger
-        )
+			 ISEOService seoService,
+			ILogger<ProductsController> logger,
+			 IConfiguration configuration
+		)
         {
             _productService = productService ?? throw new ArgumentNullException(nameof(productService));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
+			_seoService = seoService ?? throw new ArgumentNullException(nameof(seoService));
+			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			_configuration = configuration;
+		}
 
         [HttpGet]
         public async Task<IActionResult> GetAllProducts([FromQuery] ProductQueryParameters parameters)
@@ -58,8 +65,28 @@ namespace ProductService.API.Controller
                     products = products.Where(p => p.IsRedemption == parameters.IsRedemption.Value);
                 }
 
-                return Ok(products);
-            }
+				var totalCount = products.Count();
+
+				if (parameters.Page.HasValue && parameters.Limit.HasValue)
+				{
+					var page = parameters.Page.Value;
+					var limit = parameters.Limit.Value;
+					var skip = (page - 1) * limit;
+
+					products = products.Skip(skip).Take(limit);
+				}
+
+				var result = new PaginatedResponse<ProductDto>
+				{
+					Data = products.ToList(),
+					Total = totalCount,
+					Page = parameters.Page ?? 1,
+					Limit = parameters.Limit ?? totalCount,
+					TotalPages = parameters.Limit.HasValue ? (int)Math.Ceiling(totalCount / (double)parameters.Limit.Value) : 1
+				};
+
+				return Ok(result);
+			}
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting products");
@@ -81,29 +108,146 @@ namespace ProductService.API.Controller
             }
         }
 
+
+
         [HttpGet("full/{id}")]
         public async Task<IActionResult> GetProductFullDetails(string id)
         {
             try
             {
                 var product = await _productService.GetProductFullDetailsAsync(id);
-                return product == null ? NotFound() : Ok(product);
-            }
+				if (product == null)
+					return NotFound();
+
+				// Enhance with SEO data
+				var baseUrl = _configuration["AppSettings:BaseUrl"] ?? $"{Request.Scheme}://{Request.Host}";
+				var productWithSEO = _seoService.EnhanceProductWithSEO(product, baseUrl);
+
+				return Ok(new
+				{
+					Product = productWithSEO,
+					Brand = product.Brand,
+					Subcategory = product.Subcategory,
+					Category = product.Category,
+					Images = product.Images,
+					Variants = product.Variants
+				});
+			}
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error getting full product details with ID {id}");
                 return StatusCode(500, "Internal server error");
             }
         }
+		[HttpGet("full/{id}/seo")]
+		public async Task<IActionResult> GetProductSEODetails(string id)
+		{
+			try
+			{
+				var product = await _productService.GetProductFullDetailsAsync(id);
+				if (product == null)
+					return NotFound();
 
-        [HttpGet("featured")]
-        public async Task<IActionResult> GetFeaturedProducts()
+				var baseUrl = _configuration["AppSettings:BaseUrl"] ?? $"{Request.Scheme}://{Request.Host}";
+				var productWithSEO = _seoService.EnhanceProductWithSEO(product, baseUrl);
+
+				// Return only SEO data for frontend meta tags
+				return Ok(new
+				{
+					metaTitle = productWithSEO.MetaTitle,
+					metaDescription = productWithSEO.MetaDescription,
+					metaKeywords = productWithSEO.MetaKeywords,
+					canonicalUrl = productWithSEO.CanonicalUrl,
+					ogTitle = productWithSEO.OgTitle,
+					ogDescription = productWithSEO.OgDescription,
+					ogImage = productWithSEO.OgImage,
+					productName = product.Product.Name,
+					productDescription = product.Product.Description,
+					productPrice = product.Product.Price,
+					discountPrice = product.Product.DiscountPrice,
+					brandName = product.Brand.Name,
+					categoryName = product.Category.Name,
+					subcategoryName = product.Subcategory.Name
+				});
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, $"Error getting SEO details for product with ID {id}");
+				return StatusCode(500, "Internal server error");
+			}
+		}
+
+		[HttpGet("seo/sitemap")]
+		public async Task<IActionResult> GetProductsSitemapData()
+		{
+			try
+			{
+				var products = await _productService.GetAllProductsAsync();
+				var baseUrl = _configuration["AppSettings:BaseUrl"] ?? $"{Request.Scheme}://{Request.Host}";
+
+				var sitemapEntries = products.Select(p => new
+				{
+					url = $"{baseUrl.TrimEnd('/')}/products/{p.Id}",
+					lastModified = p.UpdatedAt ?? p.CreatedAt,
+					changeFrequency = "weekly",
+					priority = p.IsFeatured ? 0.8 : 0.6
+				}).ToList();
+
+				return Ok(sitemapEntries);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Error generating sitemap data");
+				return StatusCode(500, "Internal server error");
+			}
+		}
+
+		[HttpGet("full/{id}/structured-data")]
+		public async Task<IActionResult> GetProductStructuredData(string id)
+		{
+			try
+			{
+				var product = await _productService.GetProductFullDetailsAsync(id);
+				if (product == null)
+					return NotFound();
+
+				var baseUrl = _configuration["AppSettings:BaseUrl"] ?? $"{Request.Scheme}://{Request.Host}";
+				var structuredData = _seoService.GenerateStructuredData(product, baseUrl);
+
+				return Content(structuredData, "application/ld+json");
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, $"Error generating structured data for product with ID {id}");
+				return StatusCode(500, "Internal server error");
+			}
+		}
+
+
+		[HttpGet("featured")]
+        public async Task<IActionResult> GetFeaturedProducts([FromQuery] int? page = null, [FromQuery] int? limit = null)
         {
             try
             {
                 var featuredProducts = await _productService.GetFeaturedProductsAsync();
-                return Ok(featuredProducts);
-            }
+				var totalCount = featuredProducts.Count();
+
+				if (page.HasValue && limit.HasValue)
+				{
+					var skip = (page.Value - 1) * limit.Value;
+					featuredProducts = featuredProducts.Skip(skip).Take(limit.Value);
+				}
+				var result = new PaginatedResponse<ProductDto>
+				{
+					Data = featuredProducts.ToList(),
+					Total = totalCount,
+					Page = page ?? 1,
+					Limit = limit ?? totalCount,
+					TotalPages = limit.HasValue ? (int)Math.Ceiling(totalCount / (double)limit.Value) : 1
+				};
+
+				return Ok(result);
+			}
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting featured products");
@@ -125,14 +269,24 @@ namespace ProductService.API.Controller
             }
         }
         [HttpGet("redemption")]
-        public async Task<IActionResult> GetRedemptionProducts()
+        public async Task<IActionResult> GetRedemptionProducts([FromQuery] int? page = null, [FromQuery] int? limit = null)
         {
             try
             {
                 var allProducts = await _productService.GetAllProductsAsync();
                 var redemptionProducts = allProducts.Where(p => p.IsRedemption);
-                return Ok(redemptionProducts);
-            }
+				var totalCount = redemptionProducts.Count();
+				var result = new PaginatedResponse<ProductDto>
+				{
+					Data = redemptionProducts.ToList(),
+					Total = totalCount,
+					Page = page ?? 1,
+					Limit = limit ?? totalCount,
+					TotalPages = limit.HasValue ? (int)Math.Ceiling(totalCount / (double)limit.Value) : 1
+				};
+
+				return Ok(result);
+			}
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting redemption products");
@@ -167,7 +321,15 @@ namespace ProductService.API.Controller
                     Dimensions = productDto.Dimensions,
                     IsFeatured = productDto.IsFeatured,
                     WarrantyPeriod = productDto.WarrantyPeriod,
-                    CreatedAt = DateTime.UtcNow,
+					// SEO Fields
+					MetaTitle = productDto.MetaTitle,
+					MetaDescription = productDto.MetaDescription,
+					MetaKeywords = productDto.MetaKeywords,
+					CanonicalUrl = productDto.CanonicalUrl,
+					OgTitle = productDto.OgTitle,
+					OgDescription = productDto.OgDescription,
+					OgImage = productDto.OgImage,
+					CreatedAt = DateTime.UtcNow,
                     IsActive = true,
                     Images = productDto.Images,
                     Variants = productDto.Variants
@@ -202,9 +364,24 @@ namespace ProductService.API.Controller
                 if (id != productDto.Id)
                     return BadRequest("ID mismatch");
 
-                await _productService.UpdateProductAsync(productDto);
-                return Ok(new { success = true, message = "Product updated successfully" });
-            }
+				var existingProduct = await _productService.GetProductByIdAsync(id);
+				if (existingProduct != null)
+				{
+					// If SEO fields are empty in the update, keep the existing ones
+					productDto.MetaTitle = string.IsNullOrEmpty(productDto.MetaTitle) ? existingProduct.MetaTitle : productDto.MetaTitle;
+					productDto.MetaDescription = string.IsNullOrEmpty(productDto.MetaDescription) ? existingProduct.MetaDescription : productDto.MetaDescription;
+					productDto.MetaKeywords = string.IsNullOrEmpty(productDto.MetaKeywords) ? existingProduct.MetaKeywords : productDto.MetaKeywords;
+					productDto.CanonicalUrl = string.IsNullOrEmpty(productDto.CanonicalUrl) ? existingProduct.CanonicalUrl : productDto.CanonicalUrl;
+					productDto.OgTitle = string.IsNullOrEmpty(productDto.OgTitle) ? existingProduct.OgTitle : productDto.OgTitle;
+					productDto.OgDescription = string.IsNullOrEmpty(productDto.OgDescription) ? existingProduct.OgDescription : productDto.OgDescription;
+					productDto.OgImage = string.IsNullOrEmpty(productDto.OgImage) ? existingProduct.OgImage : productDto.OgImage;
+				}
+
+				productDto.UpdatedAt = DateTime.UtcNow;
+
+				await _productService.UpdateProductAsync(productDto);
+				return Ok(new { success = true, message = "Product updated successfully" });
+			}
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning(ex, $"Product with ID {id} not found");
@@ -364,4 +541,15 @@ public class ProductQueryParameters
     public string? BrandId { get; set; }
     public string? SubcategoryId { get; set; }
     public bool? IsRedemption { get; set; }
+
+	public int? Page { get; set; }
+	public int? Limit { get; set; }
+}
+public class PaginatedResponse<T>
+{
+	public List<T> Data { get; set; } = new List<T>();
+	public int Total { get; set; }
+	public int Page { get; set; }
+	public int Limit { get; set; }
+	public int TotalPages { get; set; }
 }

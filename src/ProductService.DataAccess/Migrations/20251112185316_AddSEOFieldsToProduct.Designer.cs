@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProductService.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using ProductService.DataAccess.Data;
 namespace ProductService.DataAccess.Migrations
 {
     [DbContext(typeof(ProductDbContext))]
-    partial class ProductDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251112185316_AddSEOFieldsToProduct")]
+    partial class AddSEOFieldsToProduct
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -665,9 +668,6 @@ namespace ProductService.DataAccess.Migrations
                     b.Property<string>("BrandId")
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("CanonicalUrl")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -697,28 +697,10 @@ namespace ProductService.DataAccess.Migrations
                     b.Property<bool>("IsRedemption")
                         .HasColumnType("bit");
 
-                    b.Property<string>("MetaDescription")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MetaKeywords")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MetaTitle")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("OgDescription")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OgImage")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OgTitle")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");

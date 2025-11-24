@@ -59,7 +59,7 @@ builder.Services.AddDbContext<ProductDbContext>(options =>
         {
             sqlServerOptions.EnableRetryOnFailure(
                 maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(30),
+                maxRetryDelay: TimeSpan.FromSeconds(120),
                 errorNumbersToAdd: null);
              sqlServerOptions.MigrationsAssembly("ProductService.DataAccess");
         });
@@ -133,6 +133,7 @@ builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
 builder.Services.AddScoped<IUserPreferencesRepository, UserPreferencesRepository>();
 builder.Services.AddScoped<IProductService, ProductService.Business.Services.ProductService>();
+builder.Services.AddScoped<ISEOService, SEOService>();
 
 // Register services
 
