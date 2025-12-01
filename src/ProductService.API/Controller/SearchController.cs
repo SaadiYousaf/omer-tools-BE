@@ -72,7 +72,7 @@ namespace ProductService.API.Controllers
                         Type = "Product",
                         Value = p.Name,
                         Category = p.Subcategory.Category.Name + " > " + p.Subcategory.Name,
-                        ReferenceId = p.Id
+                        ReferenceId = p.CanonicalUrl ?? p.Id
                     })
                     .Take(5) // Reserve some slots for exact matches
                     .ToListAsync();
@@ -89,7 +89,7 @@ namespace ProductService.API.Controllers
                         Type = "Product",
                         Value = p.Name,
                         Category = p.Subcategory.Category.Name + " > " + p.Subcategory.Name,
-                        ReferenceId = p.Id
+                        ReferenceId = p.CanonicalUrl ?? p.Id
                     })
                     .Take(5) // Reserve slots for "all terms" matches
                     .ToListAsync();
@@ -111,7 +111,7 @@ namespace ProductService.API.Controllers
                             Type = "Product",
                             Value = p.Name,
                             Category = p.Subcategory.Category.Name + " > " + p.Subcategory.Name,
-                            ReferenceId = p.Id
+                            ReferenceId = p.CanonicalUrl ?? p.Id
                         })
                         .Take(remainingSlots)
                         .ToListAsync();
@@ -303,8 +303,9 @@ namespace ProductService.API.Controllers
                         ImageUrl = p.Images.Where(i => i.IsPrimary).Select(i => i.ImageUrl).FirstOrDefault() ?? string.Empty,
                         IsFeatured = p.IsFeatured,
                         StockStatus = p.StockQuantity > 0 ? "In Stock" : "Out of Stock",
-                        StockQuantity = p.StockQuantity.ToString()
-                    })
+                        StockQuantity = p.StockQuantity.ToString(),
+						CanonicalUrl = p.CanonicalUrl
+					})
                     .ToListAsync();
 
                 // Get available filters
@@ -426,8 +427,8 @@ namespace ProductService.API.Controllers
         public string Type { get; set; } = string.Empty;
         public string Value { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
-        public string ReferenceId { get; set; }
-    }
+        public string ReferenceId { get; set; } = string.Empty;
+	}
 
     public class ProductSearchResultDto
     {
@@ -445,7 +446,8 @@ namespace ProductService.API.Controllers
         public bool IsFeatured { get; set; }
         public string StockStatus { get; set; } = string.Empty;
         public string StockQuantity { get; set; } = string.Empty;
-    }
+		public string CanonicalUrl { get; set; } = string.Empty;
+	}
 
     public class CategoryFilterDto
     {

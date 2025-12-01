@@ -59,6 +59,8 @@ namespace ProductService.Business.Interfaces
         // Combined methods
         Task<CategoryWithBrandsDto> GetCategoryWithBrandsAsync(string categoryId);
         Task<ProductFullDto> GetProductFullDetailsAsync(string id);
-        Task<CategoryWithSubcategoriesDto> GetCategoryWithSubcategoriesAsync(string categoryId);
+
+		Task<ProductFullDto> GetProductFullDetailsByNameAsync(string name);
+	   Task<CategoryWithSubcategoriesDto> GetCategoryWithSubcategoriesAsync(string categoryId);
     }
 }

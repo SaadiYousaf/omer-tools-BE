@@ -12,7 +12,9 @@ namespace ProductService.Domain.Interfaces
         // Basic CRUD operations
         Task<T> GetByIdAsync(string id);
         Task<T> GetByIdAsync(string id, params string[] includeProperties);
-        Task<T> GetByIdAsync(string id, params Expression<Func<T, object>>[] includeProperties);
+        Task<Product> GetByNameAsync(string name);
+
+		Task<T> GetByIdAsync(string id, params Expression<Func<T, object>>[] includeProperties);
 
         Task<IEnumerable<T>> GetAllAsync();
         Task<IEnumerable<T>> GetAllAsync(params string[] includeProperties);

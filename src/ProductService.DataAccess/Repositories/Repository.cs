@@ -50,7 +50,17 @@ namespace ProductService.DataAccess.Repositories
             return await query.FirstOrDefaultAsync(e => e.Id == id);
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync()
+		public async Task<Product> GetByNameAsync(string name)
+		{
+			return await _context.Products
+				.AsNoTrackingWithIdentityResolution()
+				.Include(u => u.Images)
+				.Include(u => u.Brand)
+				.Include(u => u.Subcategory)
+				.Include(u => u.Subcategory.Category)
+				.FirstOrDefaultAsync(u => u.CanonicalUrl == name.ToLower());
+		}
+		public async Task<IEnumerable<T>> GetAllAsync()
         {
             return await _dbSet.ToListAsync();
         }
@@ -113,6 +123,7 @@ namespace ProductService.DataAccess.Repositories
         {
             await _dbSet.AddAsync(entity);
         }
+
 
         public async Task AddRangeAsync(IEnumerable<T> entities)
         {

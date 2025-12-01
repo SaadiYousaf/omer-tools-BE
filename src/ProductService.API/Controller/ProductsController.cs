@@ -7,6 +7,7 @@ using ProductService.Business.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace ProductService.API.Controller
@@ -139,6 +140,41 @@ namespace ProductService.API.Controller
                 return StatusCode(500, "Internal server error");
             }
         }
+		[HttpGet("name/{productName}")]
+		public async Task<IActionResult> GetProductFullDetailsByName(string productName)
+		{
+			try
+			{
+				var decodedName = WebUtility.UrlDecode(productName).Replace('-', ' ');
+				var cleanName = decodedName.Replace("-", " ")
+						  .Replace("  ", " ") // Collapse double spaces
+						  .Replace("  ", " ") // Do it again for multiple spaces
+						  .Trim()
+						  .ToLowerInvariant();
+				var product = await _productService.GetProductFullDetailsByNameAsync(cleanName);
+				if (product == null)
+					return NotFound();
+
+				// Enhance with SEO data
+				var baseUrl = _configuration["AppSettings:BaseUrl"] ?? $"{Request.Scheme}://{Request.Host}";
+				var productWithSEO = _seoService.EnhanceProductWithSEO(product, baseUrl);
+
+				return Ok(new
+				{
+					Product = productWithSEO,
+					Brand = product.Brand,
+					Subcategory = product.Subcategory,
+					Category = product.Category,
+					Images = product.Images,
+					Variants = product.Variants
+				});
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, $"Error getting full product details with ID {productName}");
+				return StatusCode(500, "Internal server error");
+			}
+		}
 		[HttpGet("full/{id}/seo")]
 		public async Task<IActionResult> GetProductSEODetails(string id)
 		{

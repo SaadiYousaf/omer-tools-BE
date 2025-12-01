@@ -67,15 +67,44 @@ namespace ProductService.Business.Services
 
             // Map DTO to entity and save
             var product = _mapper.Map<Product>(productDto);
-            await _unitOfWork.ProductRepository.AddAsync(product);
+			if (!string.IsNullOrEmpty(product.Name))
+			{
+				product.CanonicalUrl = GenerateCanonicalUrl(product.Name);
+			}
+			await _unitOfWork.ProductRepository.AddAsync(product);
             await _unitOfWork.CompleteAsync();
 
             // Return the created product
             return _mapper.Map<ProductDto>(product);
         }
 
+		private string GenerateCanonicalUrl(string productName)
+		{
+			if (string.IsNullOrWhiteSpace(productName))
+				return string.Empty;
 
-        public async Task UpdateProductAsync(ProductDto productDto)
+			// Trim leading and trailing spaces
+			var canonicalUrl = productName.Trim();
+
+			// Replace special characters with spaces
+			canonicalUrl = canonicalUrl.Replace('-', ' ')
+									  .Replace('_', ' ');
+
+			// Remove specific special characters
+			canonicalUrl = canonicalUrl.Replace("!", "")
+									  .Replace("@", "")
+									  .Replace("/", "");
+
+			// Replace multiple spaces with single space
+			canonicalUrl = System.Text.RegularExpressions.Regex.Replace(canonicalUrl, @"\s+", " ");
+
+			// Convert to lowercase and trim again
+			canonicalUrl = canonicalUrl.ToLower().Trim();
+
+			return canonicalUrl;
+		}
+
+		public async Task UpdateProductAsync(ProductDto productDto)
         {
             var existingProduct = await _unitOfWork.ProductRepository.GetByIdAsync(productDto.Id);
             if (existingProduct == null)
@@ -394,7 +423,25 @@ namespace ProductService.Business.Services
             );
         }
 
-        public async Task<CategoryWithBrandsDto> GetCategoryWithBrandsAsync(string categoryId)
+		public async Task<ProductFullDto> GetProductFullDetailsByNameAsync(string name)
+		{
+			var product = await _unitOfWork.ProductRepository.GetByNameAsync(
+				name
+			);
+
+			if (product == null) return null;
+
+			return new ProductFullDto(
+				_mapper.Map<ProductDto>(product),
+				_mapper.Map<BrandDto>(product.Brand),
+				_mapper.Map<SubcategoryDto>(product.Subcategory),
+				_mapper.Map<CategoryDto>(product.Subcategory.Category),
+				_mapper.Map<IEnumerable<ProductImageDto>>(product.Images),
+				_mapper.Map<IEnumerable<ProductVariantDto>>(product.Variants)
+			);
+		}
+
+		public async Task<CategoryWithBrandsDto> GetCategoryWithBrandsAsync(string categoryId)
         {
             var category = await _unitOfWork.CategoryRepository.GetByIdAsync(categoryId, "Brands");
             if (category == null) return null;
