@@ -1,12 +1,13 @@
+using Microsoft.EntityFrameworkCore;
+using ProductService.DataAccess.Data;
+using ProductService.Domain.Entites;
+using ProductService.Domain.Entities;
+using ProductService.Domain.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using ProductService.DataAccess.Data;
-using ProductService.Domain.Entities;
-using ProductService.Domain.Interfaces;
 
 namespace ProductService.DataAccess.Repositories
 {
@@ -37,8 +38,20 @@ namespace ProductService.DataAccess.Repositories
 
             return await query.FirstOrDefaultAsync(e => e.Id == id);
         }
+		public async Task<Blog> GetBySlugAsync(string slug, params string[] includeProperties)
+		{
+			var query = _context.Set<Blog>().AsQueryable();
 
-        public async Task<T> GetByIdAsync(string id, params Expression<Func<T, object>>[] includeProperties)
+			foreach (var includeProperty in includeProperties)
+			{
+				query = query.Include(includeProperty);
+			}
+
+			return await query.FirstOrDefaultAsync(b => b.Slug == slug && b.IsActive);
+		}
+
+
+		public async Task<T> GetByIdAsync(string id, params Expression<Func<T, object>>[] includeProperties)
         {
             var query = _dbSet.AsQueryable();
 
@@ -49,6 +62,20 @@ namespace ProductService.DataAccess.Repositories
 
             return await query.FirstOrDefaultAsync(e => e.Id == id);
         }
+
+		public async Task<Product> CheckByNameAsync(string name)
+		{
+			return await _context.Products
+				.AsNoTracking()
+				.FirstOrDefaultAsync(p => p.Name.Trim().ToLower() == name.Trim().ToLower());
+		}
+
+		public async Task<Product> CheckBySkuAsync(string sku)
+		{
+			return await _context.Products
+				.AsNoTracking()
+				.FirstOrDefaultAsync(p => p.SKU.Trim().ToUpper() == sku.Trim().ToUpper());
+		}
 
 		public async Task<Product> GetByNameAsync(string name)
 		{
@@ -198,7 +225,20 @@ namespace ProductService.DataAccess.Repositories
             return await query.ToListAsync();
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync(Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null)
+		public async Task<T> GetByFieldAsync(Expression<Func<T, bool>> predicate)
+		{
+			return await _dbSet
+				.AsNoTracking()
+				.FirstOrDefaultAsync(predicate);
+		}
+
+		public async Task<bool> ExistsByFieldAsync(Expression<Func<T, bool>> predicate)
+		{
+			return await _dbSet
+				.AsNoTracking()
+				.AnyAsync(predicate);
+		}
+		public async Task<IEnumerable<T>> GetAllAsync(Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null)
         {
             IQueryable<T> query = _dbSet.AsNoTracking();
 
@@ -209,5 +249,113 @@ namespace ProductService.DataAccess.Repositories
 
             return await query.ToListAsync();
         }
-    }
+
+		public IQueryable<T> GetQueryable()
+		{
+			return _dbSet.AsQueryable();
+		}
+
+	}
+		public static class ProductRepositoryExtensions
+		{
+			// Extension method to build optimized query
+			public static IQueryable<Product> BuildOptimizedQuery(
+				this IQueryable<Product> query,
+				string search = null,
+				string brandId = null,
+				string subcategoryId = null,
+				bool? isFeatured = null,
+				bool? isRedemption = null,
+				bool? isActive = null,
+				bool includeImages = true)
+			{
+				// Apply includes
+				if (includeImages)
+				{
+					query = query.Include(p => p.Images.Where(i => i.IsActive));
+				}
+
+				// Apply filters
+				if (!string.IsNullOrEmpty(search))
+				{
+					search = search.ToLower();
+					query = query.Where(p =>
+						p.Name.ToLower().Contains(search) ||
+						p.SKU.ToLower().Contains(search) ||
+						(p.TagLine != null && p.TagLine.ToLower().Contains(search)) ||
+						(p.Description != null && p.Description.ToLower().Contains(search)));
+				}
+
+				if (!string.IsNullOrEmpty(brandId))
+					query = query.Where(p => p.BrandId == brandId);
+
+				if (!string.IsNullOrEmpty(subcategoryId))
+					query = query.Where(p => p.SubcategoryId == subcategoryId);
+
+				if (isFeatured.HasValue)
+					query = query.Where(p => p.IsFeatured == isFeatured.Value);
+
+				if (isRedemption.HasValue)
+					query = query.Where(p => p.IsRedemption == isRedemption.Value);
+
+				if (isActive.HasValue)
+					query = query.Where(p => p.IsActive == isActive.Value);
+
+				return query;
+			}
+
+			// Extension method for pagination
+			public static async Task<PaginatedResult<Product>> GetPaginatedAsync(
+				this IQueryable<Product> query,
+				int page,
+				int pageSize,
+				string sortBy = "CreatedAt",
+				bool sortDescending = true)
+			{
+				// Apply sorting
+				query = ApplySorting(query, sortBy, sortDescending);
+
+				// Get total count
+				var total = await query.CountAsync();
+
+				// Apply pagination
+				var items = await query
+					.Skip((page - 1) * pageSize)
+					.Take(pageSize)
+					.AsNoTracking()
+					.ToListAsync();
+
+				return new PaginatedResult<Product>
+				{
+					Data = items,
+					Total = total,
+					Page = page,
+					PageSize = pageSize,
+					TotalPages = (int)Math.Ceiling(total / (double)pageSize)
+				};
+			}
+
+			private static IQueryable<Product> ApplySorting(
+				IQueryable<Product> query,
+				string sortBy,
+				bool sortDescending)
+			{
+				return sortBy?.ToLower() switch
+				{
+					"name" => sortDescending
+						? query.OrderByDescending(p => p.Name)
+						: query.OrderBy(p => p.Name),
+					"price" => sortDescending
+						? query.OrderByDescending(p => p.Price)
+						: query.OrderBy(p => p.Price),
+					"createdat" => sortDescending
+						? query.OrderByDescending(p => p.CreatedAt)
+						: query.OrderBy(p => p.CreatedAt),
+					"updatedat" => sortDescending
+						? query.OrderByDescending(p => p.UpdatedAt ?? p.CreatedAt)
+						: query.OrderBy(p => p.UpdatedAt ?? p.CreatedAt),
+					_ => query.OrderByDescending(p => p.CreatedAt)
+				};
+			}
+		}
 }

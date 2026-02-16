@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ProductService.Business.DTOs;
 using ProductService.Business.Interfaces;
+using ProductService.Domain.Entites;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -94,7 +95,49 @@ namespace ProductService.API.Controller
                 return StatusCode(500, "Internal server error");
             }
         }
-        [HttpGet("{id}")]
+
+		[HttpGet("optimized")]
+		public async Task<IActionResult> GetProductsOptimized(
+			   [FromQuery] OptimizedProductQuery queryParams)
+		{
+			try
+			{
+				var result = await _productService.GetProductsOptimizedAsync(queryParams);
+				return Ok(result);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Error getting optimized products");
+				return StatusCode(500, "Internal server error");
+			}
+		}
+
+		// NEW ENDPOINT: Dashboard products
+		[HttpGet("dashboard")]
+		public async Task<IActionResult> GetDashboardProducts(
+			[FromQuery] int page = 1,
+			[FromQuery] int pageSize = 20,
+			[FromQuery] string search = null,
+			[FromQuery] bool? featured = null)
+		{
+			try
+			{
+				var result = await _productService.GetDashboardProductsAsync(
+					page: page,
+					pageSize: pageSize,
+					search: search,
+					showFeaturedOnly: featured
+				);
+
+				return Ok(result);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Error getting dashboard products");
+				return StatusCode(500, "Internal server error");
+			}
+		}
+		[HttpGet("{id}")]
         public async Task<IActionResult> GetProductById(string id)
         {
             try

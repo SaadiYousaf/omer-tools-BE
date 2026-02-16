@@ -1,0 +1,171 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{Subject}}</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; padding: 30px 20px; text-align: center; }
+        .content { padding: 30px 20px; }
+        .status-card {
+            background-color: {{StatusColor}};
+            border-radius: 10px;
+            padding: 20px;
+            margin: 25px 0;
+            border: 2px solid {{StatusBorderColor}};
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .product-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #007bff;
+        }
+        .detail-row { margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .detail-row:last-child { border-bottom: none; }
+        .footer { background-color: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 12px; }
+        .status-icon { font-size: 24px; margin-right: 10px; vertical-align: middle; }
+        .highlight { color: #007bff; font-weight: 600; }
+        .btn { display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            margin: 5px;
+            background-color: white;
+            color: {{StatusColor}};
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 style="margin: 0; font-size: 24px;">{{StoreName}}</h1>
+            <p style="margin: 5px 0 0 0; opacity: 0.9;">Warranty Claim Status Update</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Greeting -->
+            <p>Dear <span class="highlight">{{CustomerName}}</span>,</p>
+            <p>We want to inform you about an important update regarding your warranty claim.</p>
+
+            <!-- Status Update Card -->
+            <div class="status-card">
+                <h2 style="margin-top: 0; color: white;">📋 Claim Status Changed</h2>
+                <div style="display: flex; align-items: center; margin: 15px 0;">
+                    <div style="flex: 1; text-align: center;">
+                        <div style="font-size: 12px; opacity: 0.9;">Previous Status</div>
+                        <div style="font-size: 18px; font-weight: bold;">{{OldStatus}}</div>
+                    </div>
+                    <div style="padding: 0 20px; font-size: 24px;">→</div>
+                    <div style="flex: 1; text-align: center;">
+                        <div style="font-size: 12px; opacity: 0.9;">Current Status</div>
+                        <div style="font-size: 18px; font-weight: bold;">{{NewStatus}}</div>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 10px;">
+                    <span class="status-badge">{{NewStatus}}</span>
+                </div>
+            </div>
+
+            <!-- Claim Details -->
+            <h3 style="color: #0056b3; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">Claim Information</h3>
+            <div class="detail-row">
+                <strong>Claim Number:</strong> <span class="highlight">{{ClaimNumber}}</span>
+            </div>
+            <div class="detail-row">
+                <strong>Claim Type:</strong> {{ClaimType}}
+            </div>
+            <div class="detail-row">
+                <strong>Submission Date:</strong> {{SubmissionDate}}
+            </div>
+            <div class="detail-row">
+                <strong>Status Updated On:</strong> {{UpdatedDate}}
+            </div>
+
+            <!-- Products Section - SIMPLIFIED -->
+            <h3 style="color: #0056b3; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; margin-top: 30px;">Product Details</h3>
+
+            <!-- Always use the same format for products -->
+            {{#each Products}}
+            <div class="product-card">
+                <h4 style="margin-top: 0; color: #0056b3;">Product {{IncrementIndex}}</h4>
+                <div class="detail-row">
+                    <strong>Model:</strong> {{ModelNumber}}
+                </div>
+                {{#if SerialNumber}}
+                <div class="detail-row">
+                    <strong>Serial Number:</strong> {{SerialNumber}}
+                </div>
+                {{/if}}
+                {{#if FaultDescription}}
+                <div class="detail-row">
+                    <strong>Issue Description:</strong> {{FaultDescription}}
+                </div>
+                {{/if}}
+            </div>
+            {{/each}}
+
+            <!-- Common Fault Description - Only show when available -->
+            {{#if CommonFaultDescription}}
+            <div class="product-card">
+                <h4 style="margin-top: 0; color: #0056b3;">Common Issue Description</h4>
+                <p>{{CommonFaultDescription}}</p>
+            </div>
+            {{/if}}
+
+            {{#if StatusNotes}}
+            <div class="product-card">
+                <h4 style="margin-top: 0; color: #0056b3;">Status Notes</h4>
+                <p>{{StatusNotes}}</p>
+            </div>
+            {{/if}}
+
+            <!-- Next Steps -->
+            <div style="background-color: #e8f4fd; border-radius: 8px; padding: 20px; margin: 25px 0;">
+                <h3 style="margin-top: 0; color: #0056b3;">What Happens Next?</h3>
+                <p>{{NextSteps}}</p>
+            </div>
+
+            <!-- Contact Information -->
+            <div style="text-align: center; margin: 30px 0;">
+                <p>If you have any questions about your claim, please contact our support team:</p>
+                <p>
+                    <strong>📞 Phone:</strong> {{StorePhone}}<br>
+                    <strong>✉️ Email:</strong> {{StoreEmail}}<br>
+                    <strong>🌐 Website:</strong> <a href="{{WebsiteUrl}}" style="color: #007bff;">{{WebsiteUrl}}</a>
+                </p>
+                <a href="{{SupportUrl}}" class="btn">Contact Support</a>
+            </div>
+
+            <!-- Closing -->
+            <p>Thank you for choosing {{StoreName}}.</p>
+            <p>
+                Best regards,<br>
+                <strong>The {{StoreName}} Service Team</strong>
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>{{StoreName}} | {{StoreAddress}}</p>
+            <p>
+                <a href="{{WebsiteUrl}}" style="color: #666; text-decoration: none;">Website</a> |
+                <a href="{{PrivacyUrl}}" style="color: #666; text-decoration: none;">Privacy Policy</a> |
+                <a href="{{TermsUrl}}" style="color: #666; text-decoration: none;">Terms of Service</a>
+            </p>
+            <p>© {{CurrentYear}} {{StoreName}}. All rights reserved.</p>
+            <p style="font-size: 11px; opacity: 0.7;">
+                This is an automated notification. Please do not reply to this email.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,12 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using ProductService.DataAccess.Data;
 using ProductService.DataAccess.Repositories;
 using ProductService.Domain.Entites;
 using ProductService.Domain.Entities;
 using ProductService.Domain.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using static ProductService.Domain.Entities.WarrantyClaim;
 
 namespace src.ProductService.DataAccess
 {
@@ -27,7 +28,14 @@ namespace src.ProductService.DataAccess
             CategoryImageRepository = new Repository<CategoryImage>(_context);
             SubcategoryImageRepository = new Repository<SubcategoryImage>(_context);
             BrandImageRepository = new Repository<BrandImage>(_context);
-        }
+
+			// New blog repositories
+			BlogRepository = new Repository<Blog>(_context);
+			BlogImageRepository = new Repository<BlogImage>(_context);
+			// New warranty claim repositories
+			WarrantyClaimRepository = new Repository<WarrantyClaim>(_context);
+			WarrantyClaimImageRepository = new Repository<WarrantyClaimImage>(_context);
+		}
         public IRepository<SubcategoryImage> SubcategoryImageRepository { get; }
         public IRepository<BrandImage> BrandImageRepository { get; }
 
@@ -40,7 +48,15 @@ namespace src.ProductService.DataAccess
         public IRepository<ProductVariant> ProductVariantRepository { get; }
         public IUserRepository UserRepository { get; }
 
-        public async Task<int> CompleteAsync() => await _context.SaveChangesAsync();
+		// New blog repositories
+		public IRepository<Blog> BlogRepository { get; }
+		public IRepository<BlogImage> BlogImageRepository { get; }
+
+		// New warranty claim repositories
+		public IRepository<WarrantyClaim> WarrantyClaimRepository { get; }
+		public IRepository<WarrantyClaimImage> WarrantyClaimImageRepository { get; }
+
+		public async Task<int> CompleteAsync() => await _context.SaveChangesAsync();
 
         public void Dispose() => _context.Dispose();
     }

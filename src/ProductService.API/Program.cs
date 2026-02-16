@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -8,6 +9,7 @@ using ProductService.Business.Mappings;
 using ProductService.Business.Services;
 using ProductService.DataAccess.Data;
 using ProductService.DataAccess.Repositories;
+using ProductService.Domain.Entites.EmailsModel;
 using ProductService.Domain.Interfaces;
 using SendGrid;
 using src.ProductService.DataAccess;
@@ -89,6 +91,9 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddSingleton<ISendGridClient>(sp =>
     new SendGridClient(builder.Configuration["SendGrid:ApiKey"]));
+builder.Services.Configure<EmailSettings>(
+	builder.Configuration.GetSection("MailkitEmailSettings"));
+builder.Services.AddSingleton<IMailkitEmailService,MailkitEmailService>();
 
 // Configure AutoMapper
 builder.Services.AddAutoMapper(cfg =>
@@ -134,6 +139,18 @@ builder.Services.AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
 builder.Services.AddScoped<IUserPreferencesRepository, UserPreferencesRepository>();
 builder.Services.AddScoped<IProductService, ProductService.Business.Services.ProductService>();
 builder.Services.AddScoped<ISEOService, SEOService>();
+builder.Services.AddScoped<IBlogService, BlogService>();
+builder.Services.AddScoped<IWarrantyService, WarrantyService>();
+builder.Services.AddScoped<IWarrantyService>(provider =>
+	new WarrantyService(
+		provider.GetRequiredService<IUnitOfWork>(),
+		provider.GetRequiredService<IMapper>(),
+		provider.GetRequiredService<ILogger<WarrantyService>>(),
+		provider.GetRequiredService<ProductDbContext>(),
+		provider.GetRequiredService<IMailkitEmailService>()  // ← ADD THIS
+	)
+);
+
 
 // Register services
 

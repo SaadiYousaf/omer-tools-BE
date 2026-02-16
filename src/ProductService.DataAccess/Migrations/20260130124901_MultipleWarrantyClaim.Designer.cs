@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProductService.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using ProductService.DataAccess.Data;
 namespace ProductService.DataAccess.Migrations
 {
     [DbContext(typeof(ProductDbContext))]
-    partial class ProductDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260130124901_MultipleWarrantyClaim")]
+    partial class MultipleWarrantyClaim
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -354,55 +357,6 @@ namespace ProductService.DataAccess.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("PaymentMethods");
-                });
-
-            modelBuilder.Entity("ProductService.Domain.Entites.ProductClaim", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<int>("DisplayOrder")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.Property<string>("FaultDescription")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("ModelNumber")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("SerialNumber")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("WarrantyClaimId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WarrantyClaimId");
-
-                    b.ToTable("productclaim", (string)null);
                 });
 
             modelBuilder.Entity("ProductService.Domain.Entites.ProductImage", b =>
@@ -1134,10 +1088,6 @@ namespace ProductService.DataAccess.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("InvoiceNumber")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -1150,10 +1100,6 @@ namespace ProductService.DataAccess.Migrations
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("ProofMethod")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
@@ -1205,6 +1151,42 @@ namespace ProductService.DataAccess.Migrations
                     b.HasIndex("SubmittedAt");
 
                     b.ToTable("warranty_claims", (string)null);
+                });
+
+            modelBuilder.Entity("ProductService.Domain.Entities.WarrantyClaim+ProductClaim", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FaultDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ModelNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SerialNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("WarrantyClaimId")
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WarrantyClaimId");
+
+                    b.ToTable("ProductClaim");
                 });
 
             modelBuilder.Entity("ProductService.Domain.Entities.WarrantyClaim+WarrantyClaimImage", b =>
@@ -1445,17 +1427,6 @@ namespace ProductService.DataAccess.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ProductService.Domain.Entites.ProductClaim", b =>
-                {
-                    b.HasOne("ProductService.Domain.Entities.WarrantyClaim", "WarrantyClaim")
-                        .WithMany("ProductClaims")
-                        .HasForeignKey("WarrantyClaimId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("WarrantyClaim");
-                });
-
             modelBuilder.Entity("ProductService.Domain.Entites.ProductImage", b =>
                 {
                     b.HasOne("ProductService.Domain.Entities.Product", "Product")
@@ -1578,6 +1549,15 @@ namespace ProductService.DataAccess.Migrations
                         .HasForeignKey("SubcategoryId");
 
                     b.Navigation("Subcategory");
+                });
+
+            modelBuilder.Entity("ProductService.Domain.Entities.WarrantyClaim+ProductClaim", b =>
+                {
+                    b.HasOne("ProductService.Domain.Entities.WarrantyClaim", "WarrantyClaim")
+                        .WithMany("ProductClaims")
+                        .HasForeignKey("WarrantyClaimId");
+
+                    b.Navigation("WarrantyClaim");
                 });
 
             modelBuilder.Entity("ProductService.Domain.Entities.WarrantyClaim+WarrantyClaimImage", b =>

@@ -46,5 +46,11 @@ namespace ProductService.Domain.Interfaces
 
         Task<IEnumerable<T>> GetAllAsync(
             Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null);
-    }
+
+        IQueryable<T> GetQueryable();
+
+		Task<Product> CheckByNameAsync(string name);
+		Task<Product> CheckBySkuAsync(string sku);
+
+	}
 }

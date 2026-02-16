@@ -1,9 +1,10 @@
+using ProductService.Domain.Entites;
+using ProductService.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ProductService.Domain.Entites;
-using ProductService.Domain.Entities;
+using static ProductService.Domain.Entities.WarrantyClaim;
 
 namespace ProductService.Domain.Interfaces;
 
@@ -16,5 +17,13 @@ public interface IUnitOfWork : IDisposable
     IRepository<ProductImage> ProductImageRepository { get; }
     IRepository<ProductVariant> ProductVariantRepository { get; }
 
-    Task<int> CompleteAsync();
+	// New blog repositories
+	public IRepository<Blog> BlogRepository { get; }
+	public IRepository<BlogImage> BlogImageRepository { get; }
+
+	// New warranty repositories
+	public IRepository<WarrantyClaim> WarrantyClaimRepository { get; }
+	public IRepository<WarrantyClaimImage> WarrantyClaimImageRepository { get; }
+
+	Task<int> CompleteAsync();
 }

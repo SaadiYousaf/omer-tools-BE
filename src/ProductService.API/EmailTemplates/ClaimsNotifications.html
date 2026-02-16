@@ -1,0 +1,28 @@
+﻿<h2>Dear {{CustomerName}},</h2>
+<p>Thank you for submitting your warranty claim. Here are the details:</p>
+
+<div class='highlight-box'>
+    <p><strong>Claim Details</strong></p>
+    <p><strong>Claim ID:</strong> {{ClaimId}}</p>
+    <p><strong>Date Submitted:</strong> {{ClaimDate}}</p>
+    <p><strong>Status:</strong> <span style='color: #667eea; font-weight: bold;'>{{ClaimStatus}}</span></p>
+    <p><strong>Type:</strong> {{ClaimType}}</p>
+    {{#if OrderNumber}}
+    <p><strong>Product:</strong> {{OrderNumber}}</p>
+    {{/if}}
+</div>
+
+<div class='highlight-box'>
+    <p><strong>Description:</strong></p>
+    <p>{{ClaimDescription}}</p>
+</div>
+
+<div class='highlight-box' style='background: #e7f4e4; border-left-color: #28a745;'>
+    <p><strong>📋 Next Steps:</strong></p>
+    <p>{{NextSteps}}</p>
+    <p><em>⏱️ Estimated processing time: {{ProcessingTime}} business days</em></p>
+</div>
+
+<p>You can track your claim status anytime by contacting our support team.</p>
+
+<p>Thank you,<br><strong>Service Team</strong><br>{{StoreName}}</p>

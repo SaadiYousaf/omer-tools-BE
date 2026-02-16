@@ -1,6 +1,7 @@
 using AutoMapper;
 using ProductService.Business.DTOs;
 using ProductService.Business.Interfaces;
+using ProductService.DataAccess.Repositories;
 using ProductService.Domain.Entites;
 using ProductService.Domain.Entities;
 using ProductService.Domain.Interfaces;
@@ -36,7 +37,95 @@ namespace ProductService.Business.Services
             return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
 
-        public async Task<IEnumerable<ProductDto>> GetProductsByBrandAsync(string brandId)
+		public async Task<PaginatedResult<ProductDto>> GetProductsOptimizedAsync(
+			  OptimizedProductQuery queryParams)
+		{
+			// Get base query from repository
+			var query = _unitOfWork.ProductRepository.GetQueryable();
+
+			// Apply filters using extension method
+			query = query.BuildOptimizedQuery(
+				search: queryParams.Search,
+				brandId: queryParams.BrandId,
+				subcategoryId: queryParams.SubcategoryId,
+				isFeatured: queryParams.IsFeatured,
+				isRedemption: queryParams.IsRedemption,
+				isActive: queryParams.IsActive,
+				includeImages: true);
+
+			// Get paginated results
+			var paginatedResult = await query.GetPaginatedAsync(
+				page: queryParams.Page,
+				pageSize: queryParams.PageSize,
+				sortBy: queryParams.SortBy,
+				sortDescending: queryParams.SortDescending);
+
+			// Map to DTO with only needed fields
+			var productDtos = paginatedResult.Data.Select(p => new ProductDto
+			{
+				Id = p.Id,
+				SKU = p.SKU,
+				Name = p.Name,
+				TagLine = p.TagLine,
+				Price = p.Price,
+				DiscountPrice = p.DiscountPrice,
+				StockQuantity = p.StockQuantity,
+				IsFeatured = p.IsFeatured,
+				IsActive = p.IsActive,
+				IsRedemption = p.IsRedemption,
+				BrandId = p.BrandId,
+				SubcategoryId = p.SubcategoryId,
+				CreatedAt = p.CreatedAt,
+				// Include only first image for thumbnail
+				Images = p.Images
+					.OrderBy(i => i.DisplayOrder)
+					.Take(1)
+					.Select(i => new ProductImageDto(
+						i.Id,
+						i.ProductId,
+						i.ImageUrl,
+						i.AltText,
+						i.DisplayOrder,
+						i.IsPrimary,
+						i.CreatedAt,
+						i.UpdatedAt,
+						i.IsActive
+					))
+					.ToList()
+			}).ToList();
+
+			return new PaginatedResult<ProductDto>
+			{
+				Data = productDtos,
+				Total = paginatedResult.Total,
+				Page = paginatedResult.Page,
+				PageSize = paginatedResult.PageSize,
+				TotalPages = paginatedResult.TotalPages
+			};
+		}
+
+		// NEW METHOD: Specifically for dashboard (your use case)
+		public async Task<PaginatedResult<ProductDto>> GetDashboardProductsAsync(
+			int page = 1,
+			int pageSize = 20,
+			string search = null,
+			bool? showFeaturedOnly = null)
+		{
+			var queryParams = new OptimizedProductQuery
+			{
+				Page = page,
+				PageSize = pageSize,
+				Search = search,
+				IsFeatured = showFeaturedOnly,
+				IsActive = true, // Only show active products in dashboard
+				SortBy = "CreatedAt",
+				SortDescending = true
+			};
+
+			return await GetProductsOptimizedAsync(queryParams);
+		}
+
+		public async Task<IEnumerable<ProductDto>> GetProductsByBrandAsync(string brandId)
         {
             var products = await _unitOfWork.ProductRepository.GetAllAsync("Images");
             return _mapper.Map<IEnumerable<ProductDto>>(
@@ -59,8 +148,33 @@ namespace ProductService.Business.Services
         }
         public async Task<ProductDto> CreateProductAsync(ProductDto productDto)
         {
-            // Generate ID if not provided
-            if (string.IsNullOrEmpty(productDto.Id) || productDto.Id == "0")
+
+			//var allProducts = await _unitOfWork.ProductRepository.GetAllAsync();
+            var existingProductName = await _unitOfWork.ProductRepository.CheckByNameAsync(productDto.Name);
+			// Check for duplicate product name
+			//var normalizedName = productDto.Name.Trim().ToLower();
+   //         var existingByName = existingProductName.Name.Trim().ToLower() == normalizedName;
+				//.FirstOrDefault(p => p.Name.Trim().ToLower() == normalizedName);
+
+			if (existingProductName != null)
+			{
+				throw new ArgumentException($"A product with name '{productDto.Name}' already exists. " +
+										   $"Existing product ID: {existingProductName.Id}, SKU: {existingProductName.SKU}");
+			}
+
+			// Check for duplicate SKU
+			//var normalizedSku = productDto.SKU.Trim().ToUpper();
+   //         var existingBySku = existingproductSku.SKU.Trim().ToUpper() == normalizedSku;
+				//.FirstOrDefault(p => p.SKU.Trim().ToUpper() == normalizedSku);
+			var existingProductSku = await _unitOfWork.ProductRepository.CheckBySkuAsync(productDto.SKU);
+
+			if (existingProductSku != null)
+			{
+				throw new ArgumentException($"A product with SKU '{productDto.SKU}' already exists. " +
+										   $"Existing product ID: {existingProductSku.Id}, Name: {existingProductSku.Name}");
+			}
+			// Generate ID if not provided
+			if (string.IsNullOrEmpty(productDto.Id) || productDto.Id == "0")
             {
                 productDto.Id = Guid.NewGuid().ToString();
             }
@@ -111,7 +225,11 @@ namespace ProductService.Business.Services
                 throw new KeyNotFoundException($"Product with ID {productDto.Id} not found");
 
             _mapper.Map(productDto, existingProduct);
-            await _unitOfWork.ProductRepository.UpdateAsync(existingProduct);
+			if (!string.IsNullOrEmpty(existingProduct.Name))
+			{
+				existingProduct.CanonicalUrl = GenerateCanonicalUrl(existingProduct.Name);
+			}
+			await _unitOfWork.ProductRepository.UpdateAsync(existingProduct);
             await _unitOfWork.CompleteAsync();
         }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ProductService.Business.DTOs;
+using ProductService.Domain.Entites;
 
 namespace ProductService.Business.Interfaces
 {
@@ -10,7 +11,18 @@ namespace ProductService.Business.Interfaces
         // Product methods
         Task<ProductDto> GetProductByIdAsync(string id);
         Task<IEnumerable<ProductDto>> GetAllProductsAsync();
-        Task<IEnumerable<ProductDto>> GetProductsByBrandAsync(string brandId);
+
+		Task<PaginatedResult<ProductDto>> GetProductsOptimizedAsync(
+			   OptimizedProductQuery queryParams);
+
+		Task<PaginatedResult<ProductDto>> GetDashboardProductsAsync(
+			int page = 1,
+			int pageSize = 20,
+			string search = null,
+			bool? showFeaturedOnly = null);
+
+
+		Task<IEnumerable<ProductDto>> GetProductsByBrandAsync(string brandId);
         Task<IEnumerable<ProductDto>> GetProductsBySubcategoryAsync(string subcategoryId);
         Task<IEnumerable<ProductDto>> GetFeaturedProductsAsync();
         Task<IEnumerable<ProductDto>> GetProductSliderProductsAsync(int? maxItems = null);

@@ -3,6 +3,7 @@ using ProductService.Domain.Entites;
 using ProductService.Domain.Entities;
 using System;
 using UserService.Domain.Entities;
+using static ProductService.Domain.Entities.WarrantyClaim;
 
 namespace ProductService.DataAccess.Data
 {
@@ -31,8 +32,18 @@ namespace ProductService.DataAccess.Data
         public DbSet<SubcategoryImage> SubcategoryImages { get; set; }
         public DbSet<BrandImage> BrandImages { get; set; }
 
+		// New Blog DbSets
+		public DbSet<Blog> Blogs { get; set; }
+		public DbSet<BlogImage> BlogImages { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+		// New Warranty Claim DbSets
+		public DbSet<WarrantyClaim> WarrantyClaims { get; set; }
+		public DbSet<WarrantyClaimImage> WarrantyClaimImages { get; set; }
+
+		public DbSet<ProductClaim> ProductClaims { get; set; }
+
+
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
@@ -51,8 +62,16 @@ namespace ProductService.DataAccess.Data
             modelBuilder.Entity<ShippingAddress>().ToTable("shipping_addresses");
             modelBuilder.Entity<BrandImage>().ToTable("BrandImages");
 
-        // Configure User entity
-        modelBuilder.Entity<User>(entity =>
+			// Table Names for blog entities
+			modelBuilder.Entity<Blog>().ToTable("blogs");
+			modelBuilder.Entity<BlogImage>().ToTable("blog_images");
+
+			// Table Names for warranty claim entities
+			modelBuilder.Entity<WarrantyClaim>().ToTable("warranty_claims");
+			modelBuilder.Entity<WarrantyClaimImage>().ToTable("warranty_claim_images");
+
+			// Configure User entity
+			modelBuilder.Entity<User>(entity =>
             {
                 entity.HasKey(u => u.Id);
                 entity.Property(u => u.Id).HasMaxLength(50);
@@ -429,6 +448,193 @@ namespace ProductService.DataAccess.Data
                 entity.Property(r => r.IsActive)
                     .HasDefaultValue(true);
             });
-        }
-    }
+
+			// Configure Blog entity
+			modelBuilder.Entity<Blog>(entity =>
+			{
+				entity.HasKey(b => b.Id);
+				entity.Property(b => b.Id).HasMaxLength(50);
+				entity.Property(b => b.Title).HasMaxLength(350);
+				entity.Property(b => b.Slug).HasMaxLength(250);
+				entity.Property(b => b.ShortDescription).HasMaxLength(500);
+				entity.Property(b => b.Content).HasColumnType("nvarchar(max)");
+				entity.Property(b => b.FeaturedImageUrl).HasMaxLength(500);
+				entity.Property(b => b.Author).HasMaxLength(100);
+
+				// SEO Properties
+				entity.Property(b => b.MetaTitle).HasMaxLength(200);
+				entity.Property(b => b.MetaDescription).HasMaxLength(500);
+				entity.Property(b => b.MetaKeywords).HasMaxLength(500);
+				entity.Property(b => b.CanonicalUrl).HasMaxLength(500);
+				entity.Property(b => b.OgTitle).HasMaxLength(200);
+				entity.Property(b => b.OgDescription).HasMaxLength(500);
+				entity.Property(b => b.OgImage).HasMaxLength(500);
+
+				// Relationships
+				entity.HasMany(b => b.Images)
+					.WithOne(i => i.Blog)
+					.HasForeignKey(i => i.BlogId)
+					.OnDelete(DeleteBehavior.Cascade);
+
+
+				// Set default values
+				entity.Property(b => b.CreatedAt)
+					.HasDefaultValueSql("GETUTCDATE()");
+				entity.Property(b => b.IsActive)
+					.HasDefaultValue(true);
+				entity.Property(b => b.IsPublished)
+					.HasDefaultValue(true);
+				entity.Property(b => b.IsFeatured)
+					.HasDefaultValue(false);
+				entity.Property(b => b.ViewCount)
+					.HasDefaultValue(0);
+			});
+
+			// Configure BlogImage entity
+			modelBuilder.Entity<BlogImage>(entity =>
+			{
+				entity.HasKey(bi => bi.Id);
+				entity.Property(bi => bi.Id).HasMaxLength(50);
+				entity.Property(bi => bi.ImageUrl).IsRequired().HasMaxLength(500);
+				entity.Property(bi => bi.AltText).HasMaxLength(200);
+				entity.Property(bi => bi.Caption).HasMaxLength(300);
+
+				// Set default values
+				entity.Property(bi => bi.CreatedAt)
+					.HasDefaultValueSql("GETUTCDATE()");
+				entity.Property(bi => bi.IsActive)
+					.HasDefaultValue(true);
+				entity.Property(bi => bi.DisplayOrder)
+					.HasDefaultValue(0);
+				entity.Property(bi => bi.IsPrimary)
+					.HasDefaultValue(false);
+			});
+			modelBuilder.Entity<WarrantyClaim>(entity =>
+			{
+				entity.HasKey(wc => wc.Id);
+				entity.Property(wc => wc.Id).HasMaxLength(50);
+				entity.Property(wc => wc.ClaimNumber)
+					.IsRequired()
+					.HasMaxLength(50);
+				entity.HasIndex(wc => wc.ClaimNumber).IsUnique();
+
+				entity.Property(wc => wc.ClaimType)
+					.IsRequired()
+					.HasMaxLength(50);
+				entity.Property(wc => wc.ProofOfPurchasePath)
+					.HasMaxLength(500);
+				entity.Property(wc => wc.ProofOfPurchaseFileName)
+					.HasMaxLength(255);
+
+				// End User Information
+				entity.Property(wc => wc.FullName)
+					.IsRequired()
+					.HasMaxLength(200);
+				entity.Property(wc => wc.PhoneNumber)
+					.IsRequired()
+					.HasMaxLength(20);
+				entity.Property(wc => wc.Email)
+					.IsRequired()
+					.HasMaxLength(255);
+				entity.Property(wc => wc.Address)
+					.HasMaxLength(500);
+
+				// Asset Information
+				entity.Property(wc => wc.ModelNumber)
+					.IsRequired()
+					.HasMaxLength(100);
+				entity.Property(wc => wc.SerialNumber)
+					.HasMaxLength(100);
+				entity.Property(wc => wc.FaultDescription)
+					.IsRequired()
+					.HasColumnType("nvarchar(max)");
+
+				// Claim Status & Tracking
+				entity.Property(wc => wc.Status)
+					.IsRequired()
+					.HasMaxLength(20)
+					.HasDefaultValue("submitted");
+				entity.Property(wc => wc.StatusNotes)
+					.HasMaxLength(1000);
+				entity.Property(wc => wc.AssignedTo)
+					.HasMaxLength(100);
+
+				// Relationships
+				entity.HasMany(wc => wc.FaultImages)
+					.WithOne(wci => wci.WarrantyClaim)
+					.HasForeignKey(wci => wci.WarrantyClaimId)
+					.OnDelete(DeleteBehavior.Cascade);
+
+				// Set default values
+				entity.Property(wc => wc.CreatedAt)
+					.HasDefaultValueSql("GETUTCDATE()");
+				entity.Property(wc => wc.IsActive)
+					.HasDefaultValue(true);
+				entity.Property(wc => wc.SubmittedAt)
+					.HasDefaultValueSql("GETUTCDATE()");
+
+				// Indexes for better query performance
+				entity.HasIndex(wc => wc.Status);
+				entity.HasIndex(wc => wc.ClaimType);
+				entity.HasIndex(wc => wc.Email);
+				entity.HasIndex(wc => wc.SubmittedAt);
+			});
+
+			// Warranty Claim Image configuration
+			modelBuilder.Entity<WarrantyClaimImage>(entity =>
+			{
+				entity.HasKey(wci => wci.Id);
+				entity.Property(wci => wci.Id).HasMaxLength(50);
+				entity.Property(wci => wci.ImagePath)
+					.IsRequired()
+					.HasMaxLength(500);
+				entity.Property(wci => wci.ImageUrl)
+					.HasMaxLength(500);
+				entity.Property(wci => wci.FileName)
+					.IsRequired()
+					.HasMaxLength(255);
+				entity.Property(wci => wci.FileType)
+					.HasMaxLength(10);
+				entity.Property(wci => wci.FileSize);
+				entity.Property(wci => wci.DisplayOrder)
+					.HasDefaultValue(0);
+
+				// Set default values
+				entity.Property(wci => wci.CreatedAt)
+					.HasDefaultValueSql("GETUTCDATE()");
+				entity.Property(wci => wci.IsActive)
+					.HasDefaultValue(true);
+
+				// Index for foreign key
+				entity.HasIndex(wci => wci.WarrantyClaimId);
+			});
+
+			modelBuilder.Entity<ProductClaim>(entity =>
+			{
+				entity.HasKey(pc => pc.Id);
+				entity.ToTable("productclaim"); // Add table name
+
+				entity.Property(pc => pc.Id).HasMaxLength(50);
+				entity.Property(pc => pc.WarrantyClaimId).IsRequired().HasMaxLength(50);
+				entity.Property(pc => pc.ModelNumber).IsRequired().HasMaxLength(100);
+				entity.Property(pc => pc.SerialNumber).HasMaxLength(100);
+				entity.Property(pc => pc.FaultDescription).IsRequired().HasColumnType("nvarchar(max)");
+				entity.Property(pc => pc.DisplayOrder).HasDefaultValue(0);
+
+				// Foreign key relationship
+				entity.HasOne(pc => pc.WarrantyClaim)
+					.WithMany(wc => wc.ProductClaims)
+					.HasForeignKey(pc => pc.WarrantyClaimId)
+					.OnDelete(DeleteBehavior.Cascade);
+
+				// Set default values if BaseEntity doesn't already handle them
+				entity.Property(pc => pc.CreatedAt)
+					.HasDefaultValueSql("GETUTCDATE()");
+				entity.Property(pc => pc.UpdatedAt);
+				entity.Property(pc => pc.IsActive)
+					.HasDefaultValue(true);
+			});
+
+		}
+	}
 }
